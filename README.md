@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![made-with-Go](https://img.shields.io/badge/Made%20with-Go-1f425f.svg)](http://golang.org)
-[![Go Report Card](https://goreportcard.com/badge/github.com/butlerdotdev/butler)](https://goreportcard.com/report/github.com/butlerdotdev/butler)
+[![Go Report Card](https://goreportcard.com/badge/github.com/Butlerdotdev/Butler)](https://goreportcard.com/report/github.com/Butlerdotdev/Butler)
 [![GitHub go.mod Go version of a Go module](https://img.shields.io/github/go-mod/go-version/gomods/athens.svg)](https://github.com/gomods/athens)
 [![GoDoc reference example](https://img.shields.io/badge/godoc-reference-blue.svg)](https://godoc.org/nanomsg.org/go/mangos/v2)
 
