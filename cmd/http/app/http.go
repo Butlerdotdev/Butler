@@ -1,7 +1,6 @@
 package app
 
 import (
-
 	"context"
 	"fmt"
 	"github.com/butdotdev/butler/cmd/http/app/server"
@@ -11,29 +10,28 @@ import (
 )
 
 type Web struct {
-	logger *zap.Logger
+	logger      *zap.Logger
 	serviceName string
 
 	hServer *http.Server
 }
 
-type WebParams struct  {
+type WebParams struct {
 	ServiceName string
-	Logger *zap.Logger
-
+	Logger      *zap.Logger
 }
 
 func New(params *WebParams) *Web {
 	return &Web{
 		serviceName: params.ServiceName,
-		logger: params.Logger,
+		logger:      params.Logger,
 	}
 }
 
 func (w *Web) Start(builderOpts *WebOptions) error {
 	httpServer, err := server.StartHttpServer(&server.HTTPServerParams{
 		HostPort: builderOpts.WebHTTPHostPort,
-		Logger: w.logger,
+		Logger:   w.logger,
 	})
 	if err != nil {
 		return fmt.Errorf("could not start the HTTP server %w", err)

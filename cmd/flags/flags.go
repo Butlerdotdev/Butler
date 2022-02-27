@@ -9,12 +9,12 @@ import (
 )
 
 const (
-	logLevel = "log-level"
+	logLevel   = "log-level"
 	configFile = "config-file"
 )
 
 func AddConfigFileFlag(flagSet *flag.FlagSet) {
-	flagSet.String(configFile, "",  "Configuration file in JSON, TOML, YAML, HCL, or Java properties formats (default none). See spf13/viper for precedence.")
+	flagSet.String(configFile, "", "Configuration file in JSON, TOML, YAML, HCL, or Java properties formats (default none). See spf13/viper for precedence.")
 }
 
 func TryLoadConfigFile(v *viper.Viper) error {

@@ -4,6 +4,7 @@ import (
 	"github.com/butdotdev/butler/ports"
 	"github.com/spf13/viper"
 )
+
 const (
 	webHTTPHostPort = "web.http-server.host-port"
 )

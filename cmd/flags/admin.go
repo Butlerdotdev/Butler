@@ -14,17 +14,17 @@ const (
 )
 
 type AdminServer struct {
-	logger *zap.Logger
+	logger        *zap.Logger
 	adminHostPort string
 	//hc
-	mux *http.ServeMux
+	mux    *http.ServeMux
 	server *http.Server
 }
 
 func NewAdminServer(hostPort string) *AdminServer {
 	return &AdminServer{
 		adminHostPort: hostPort,
-		logger: zap.NewNop(),
+		logger:        zap.NewNop(),
 		//hc
 		mux: http.NewServeMux(),
 	}
@@ -55,11 +55,11 @@ func (s *AdminServer) Serve() error {
 	s.logger.Info(
 		"Admin server started",
 		zap.String("http.host-port", l.Addr().String()),
-		)
+	)
 	return nil
 }
 
-func (s *AdminServer) serveWithListener(l net.Listener)  {
+func (s *AdminServer) serveWithListener(l net.Listener) {
 	s.logger.Info("Mounting health check on admin server", zap.String("route", "/"))
 	//hc
 	//version.RegisterHandler(s.mux, s.logger)

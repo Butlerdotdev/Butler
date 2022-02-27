@@ -11,8 +11,8 @@ import (
 )
 
 type Service struct {
-	AdminPort int
-	Logger *zap.Logger
+	AdminPort      int
+	Logger         *zap.Logger
 	signalsChannel chan os.Signal
 
 	Admin *AdminServer
@@ -25,13 +25,13 @@ func NewService(adminPort int) *Service {
 	signal.Notify(signalsChannel, os.Interrupt, syscall.SIGTERM)
 
 	return &Service{
-		Admin: NewAdminServer(ports.PortToHostPort(adminPort)),
+		Admin:          NewAdminServer(ports.PortToHostPort(adminPort)),
 		signalsChannel: signalsChannel,
 		//hc
 	}
 }
 
-func (s *Service) Start(v *viper.Viper) error  {
+func (s *Service) Start(v *viper.Viper) error {
 	if err := TryLoadConfigFile(v); err != nil {
 		return fmt.Errorf("cannot load config file: %w", err)
 	}

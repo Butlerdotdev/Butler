@@ -9,10 +9,9 @@ import (
 
 // HTTPServerParams is a struct of http parameters
 type HTTPServerParams struct {
-	HostPort       string
-	Logger         *zap.Logger
+	HostPort string
+	Logger   *zap.Logger
 }
-
 
 // StartHttpServer based on the given parameters
 func StartHttpServer(params *HTTPServerParams) (*http.Server, error) {
@@ -20,7 +19,7 @@ func StartHttpServer(params *HTTPServerParams) (*http.Server, error) {
 
 	errorLog, _ := zap.NewStdLogAt(params.Logger, zapcore.ErrorLevel)
 	server := &http.Server{
-		Addr: params.HostPort,
+		Addr:     params.HostPort,
 		ErrorLog: errorLog,
 	}
 

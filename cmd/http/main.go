@@ -13,11 +13,11 @@ import (
 
 const serviceName = "butler-http"
 
-func main()  {
+func main() {
 	svc := flags.NewService(ports.WebAdminHTTP)
 
 	v := viper.New()
-	command := &cobra.Command {
+	command := &cobra.Command{
 		Use:   "butler-http",
 		Short: "butler http is the main http server for butler",
 		Long:  `Butler http is the server that runs and serves the butler frontend.`,
@@ -36,7 +36,7 @@ func main()  {
 				logger.Fatal("Failed to start web server", zap.Error(err))
 			}
 
-		return nil
+			return nil
 
 		},
 	}

@@ -7,6 +7,7 @@ const (
 	// WebAdminHTTP is the default admin HTTP port
 	WebAdminHTTP = 3000
 )
+
 func FormatHostPort(hostPort string) string {
 	if hostPort == "" {
 		return ""
