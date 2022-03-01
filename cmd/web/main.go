@@ -29,7 +29,7 @@ import (
 	"os"
 )
 
-const serviceName = "butler-http"
+const serviceName = "butler-web"
 
 func main() {
 	svc := flags.NewService(ports.WebHTTP)
