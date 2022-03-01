@@ -16,7 +16,10 @@
 
 package ports
 
-import "strconv"
+import (
+	"strconv"
+	"strings"
+)
 
 const (
 
@@ -30,7 +33,11 @@ func FormatHostPort(hostPort string) string {
 		return ""
 	}
 
-	return FormatHostPort(hostPort)
+	if strings.Contains(hostPort, ":") {
+		return hostPort
+	}
+
+	return ":" + hostPort
 }
 
 // PortToHostPort converts the port into a host:port address string

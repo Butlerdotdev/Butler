@@ -49,8 +49,7 @@ func main() {
 				Logger:      logger,
 				HealthCheck: svc.HC(),
 			})
-			webOpts := new(app.WebOptions)
-			//webOpts.InitFromViper(v)
+			webOpts := new(app.WebOptions).InitFromViper(v)
 			if err := w.Start(webOpts); err != nil {
 				logger.Fatal("Failed to start the web server", zap.Error(err))
 			}
