@@ -19,6 +19,7 @@ package main
 import (
 	"fmt"
 	"github.com/butdotdev/butler/cmd/all-in-one/setupcontext"
+	"github.com/butdotdev/butler/cmd/docs"
 	"github.com/butdotdev/butler/cmd/flags"
 	"github.com/butdotdev/butler/cmd/status"
 	"github.com/butdotdev/butler/cmd/web/app"
@@ -65,7 +66,7 @@ func main() {
 	}
 
 	command.AddCommand(status.Command(v, ports.WebHTTP))
-
+	command.AddCommand(docs.Command(v))
 	config.AddFlags(
 		v,
 		command,
