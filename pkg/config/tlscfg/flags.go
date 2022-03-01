@@ -37,8 +37,8 @@ type ClientFlagsConfig struct {
 	Prefix string
 }
 
-// ServerFlagConfig describe which CLI flags for TLS server should be generated
-type ServerFlagConfig struct {
+// ServerFlagsConfig describe which CLI flags for TLS server should be generated
+type ServerFlagsConfig struct {
 	Prefix string
 }
 
@@ -53,7 +53,7 @@ func (c ClientFlagsConfig) AddFlags(flags *flag.FlagSet) {
 }
 
 // AddFlags adds flags for TLS to the FlatSet
-func (c ServerFlagConfig) AddFlags(flags *flag.FlagSet) {
+func (c ServerFlagsConfig) AddFlags(flags *flag.FlagSet) {
 	flags.Bool(c.Prefix+tlsEnabled, false, "Enable TLS on the server")
 	flags.String(c.Prefix+tlsCert, "", "Path to a TLS cert file, used to Identify this server to clients")
 	flags.String(c.Prefix+tlsKey, "", "Path to a TLS Private Key file, used to identify this server to clients")
@@ -72,7 +72,7 @@ func (c ClientFlagsConfig) InitFromViper(v *viper.Viper) Options {
 	return p
 }
 
-func (c ServerFlagConfig) InitFromViper(v *viper.Viper) Options {
+func (c ServerFlagsConfig) InitFromViper(v *viper.Viper) Options {
 	var p Options
 	p.Enabled = v.GetBool(c.Prefix + tlsEnabled)
 	p.CertPath = v.GetString(c.Prefix + tlsCert)

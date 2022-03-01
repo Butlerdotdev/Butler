@@ -29,7 +29,7 @@ import (
 )
 
 const (
-	HTTPHostPort = "web-server"
+	HTTPHostPort = "health-server"
 )
 
 // Server runs an HTTP server with hc endpoints

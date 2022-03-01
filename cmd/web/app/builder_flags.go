@@ -18,28 +18,39 @@ package app
 
 import (
 	"flag"
+	"github.com/butdotdev/butler/pkg/config/tlscfg"
 	"github.com/butdotdev/butler/ports"
 	"github.com/spf13/viper"
 )
 
 const (
-	webHTTPHostPort = "non-server"
+	webHTTPHostPort = "web-server"
 )
+
+var tlsHTTPFlagsConfig = tlscfg.ServerFlagsConfig{
+	Prefix: "web.http",
+}
 
 // WebOptions struct holds config for web
 type WebOptions struct {
 	// WebHTTPHostPort is the host:port address that the web service listens in on for http requests
 	WebHTTPHostPort string
+
+	// TLSHTTP configures secure transport for HTTP endpoint
+	TLSHTTP tlscfg.Options
 }
 
 // AddFlags adds flags for WebOptions
 func AddFlags(flags *flag.FlagSet) {
 	flags.String(webHTTPHostPort, ports.PortToHostPort(ports.WebHTTP), "The host:port (e.g. 127.0.0.1:3000 ) of Butler's HTTP server")
+
+	tlsHTTPFlagsConfig.AddFlags(flags)
 }
 
 // InitFromViper initializes WebOptions with props from viper
 func (wOpts *WebOptions) InitFromViper(v *viper.Viper) *WebOptions {
 	wOpts.WebHTTPHostPort = ports.FormatHostPort(v.GetString(webHTTPHostPort))
 
+	wOpts.TLSHTTP = tlsHTTPFlagsConfig.InitFromViper(v)
 	return wOpts
 }
