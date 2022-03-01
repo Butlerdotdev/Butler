@@ -47,11 +47,14 @@ func main() {
 			w := app.New(&app.WebParams{
 				ServiceName: serviceName,
 				Logger:      logger,
+				HealthCheck: svc.HC(),
 			})
-			//webOpts := new(app.WebOptions).InitFromViper(v)
-			//if err := w.Start(webOpts); err != nil {
-			//	logger.Fatal("Failed to start the web server", zap.Error(err))
-			//}
+			webOpts := new(app.WebOptions)
+			//webOpts.InitFromViper(v)
+			if err := w.Start(webOpts); err != nil {
+				logger.Fatal("Failed to start the web server", zap.Error(err))
+			}
+			w.Start(webOpts)
 			svc.RunAndThen(func() {
 				if err := w.Close(); err != nil {
 					logger.Error("failed to cleanly close the http server", zap.Error(err))
@@ -68,6 +71,7 @@ func main() {
 		v,
 		command,
 		svc.AddFlags,
+		app.AddFlags,
 	)
 	if err := command.Execute(); err != nil {
 		fmt.Println(err.Error())

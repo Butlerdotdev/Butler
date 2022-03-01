@@ -26,6 +26,7 @@ import (
 	"time"
 )
 
+// Web holds the values for a new web
 type Web struct {
 	serviceName string
 	logger      *zap.Logger
@@ -33,12 +34,14 @@ type Web struct {
 	hServer     *http.Server
 }
 
+// WebParams to construct a new web
 type WebParams struct {
 	ServiceName string
 	Logger      *zap.Logger
 	HealthCheck *healthcheck.HealthCheck
 }
 
+// New constructs a new collector component
 func New(params *WebParams) *Web {
 	return &Web{
 		serviceName: params.ServiceName,
@@ -47,6 +50,7 @@ func New(params *WebParams) *Web {
 	}
 }
 
+// Start the component and their dependencies
 func (w *Web) Start(builderOpts *WebOptions) error {
 	httpServer, err := server.StartHttpServer(&server.HTTPServerParams{
 		HostPort:    builderOpts.WebHTTPHostPort,
@@ -61,6 +65,7 @@ func (w *Web) Start(builderOpts *WebOptions) error {
 	return nil
 }
 
+// Close the component and all dependencies
 func (w *Web) Close() error {
 	if w.hServer != nil {
 		timeout, cancel := context.WithTimeout(context.Background(), 5*time.Second)

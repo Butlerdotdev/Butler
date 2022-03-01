@@ -32,10 +32,12 @@ type WebOptions struct {
 	WebHTTPHostPort string
 }
 
+// AddFlags adds flags for WebOptions
 func AddFlags(flags *flag.FlagSet) {
 	flags.String(webHTTPHostPort, ports.PortToHostPort(ports.WebHTTP), "The host:port (e.g. 127.0.0.1:3000 ) of Butler's HTTP server")
 }
 
+// InitFromViper initializes WebOptions with props from viper
 func (wOpts *WebOptions) InitFromViper(v *viper.Viper) *WebOptions {
 	wOpts.WebHTTPHostPort = ports.FormatHostPort(v.GetString(webHTTPHostPort))
 

@@ -24,6 +24,7 @@ import (
 	"time"
 )
 
+// Status represents the state of the service
 type Status int
 
 const (

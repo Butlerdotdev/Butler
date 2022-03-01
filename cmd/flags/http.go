@@ -32,6 +32,7 @@ const (
 	HTTPHostPort = "web-server"
 )
 
+// Server runs an HTTP server with hc endpoints
 type Server struct {
 	logger   *zap.Logger
 	hostPort string
@@ -40,6 +41,7 @@ type Server struct {
 	server   *http.Server
 }
 
+// NewServer creates a new http server
 func NewServer(hostPort string) *Server {
 	return &Server{
 		hostPort: hostPort,
@@ -54,6 +56,7 @@ func (s *Server) HC() *healthcheck.HealthCheck {
 	return s.hc
 }
 
+// setLogger inits a new logger
 func (s *Server) setLogger(logger *zap.Logger) {
 	s.logger = logger
 	s.hc.SetLogger(logger)
@@ -64,15 +67,18 @@ func (s *Server) AddFlags(flagSet *flag.FlagSet) {
 	flagSet.String(HTTPHostPort, s.hostPort, fmt.Sprintf("The host:port (e.g. 127.0.0.1%s or %s) for the admin server, including health check, /healthy, etc.", s.hostPort, s.hostPort))
 }
 
+// InitFromViper inits the server with props retrieved from viper
 func (s *Server) initFromViper(v *viper.Viper, logger *zap.Logger) {
 	s.setLogger(logger)
 	s.hostPort = v.GetString(HTTPHostPort)
 }
 
+// Handle adds a new hanlder to the HTTP server
 func (s *Server) Handle(path string, handler http.Handler) {
 	s.mux.Handle(path, handler)
 }
 
+// Serve starts a new HTTP Server
 func (s *Server) Serve() error {
 	l, err := net.Listen("tcp", s.hostPort)
 	if err != nil {
@@ -108,6 +114,7 @@ func (s *Server) serveWithListener(l net.Listener) {
 	}()
 }
 
+// Close stops the HTTP server
 func (s *Server) Close() error {
 	return s.server.Shutdown(context.Background())
 }

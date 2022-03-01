@@ -24,6 +24,7 @@ type options struct {
 
 type Option func(c *options)
 
+// Options is a function that sets some option
 var Options options
 
 func (options) Logger(logger *zap.Logger) Option {

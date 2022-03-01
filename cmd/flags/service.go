@@ -33,6 +33,7 @@ type Service struct {
 	Logger          *zap.Logger
 	signalsChannel  chan os.Signal
 	hcStatusChannel chan healthcheck.Status
+	NoStorage       bool
 
 	Server *Server
 }
@@ -53,7 +54,7 @@ func NewService(httpPort int) *Service {
 // AddFlags registers CLI flags.
 func (s *Service) AddFlags(flagSet *flag.FlagSet) {
 	AddConfigFileFlag(flagSet)
-	if false {
+	if s.NoStorage {
 		AddLoggingFlag(flagSet)
 	} else {
 		s.Server.AddFlags(flagSet)

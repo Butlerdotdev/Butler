@@ -24,6 +24,7 @@ const (
 	WebHTTP = 3000
 )
 
+// FormatHostPort returns hostPort in a usable format (host:port)
 func FormatHostPort(hostPort string) string {
 	if hostPort == "" {
 		return ""
@@ -32,6 +33,7 @@ func FormatHostPort(hostPort string) string {
 	return FormatHostPort(hostPort)
 }
 
+// PortToHostPort converts the port into a host:port address string
 func PortToHostPort(port int) string {
 	return ":" + strconv.Itoa(port)
 }

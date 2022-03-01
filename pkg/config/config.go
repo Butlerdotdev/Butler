@@ -44,6 +44,7 @@ func AddFlags(v *viper.Viper, command *cobra.Command, inits ...func(*flag.FlagSe
 	return v, command
 }
 
+// configureViper to read in env vars
 func configureViper(v *viper.Viper) {
 	v.AutomaticEnv()
 	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
