@@ -1,0 +1,62 @@
+// Package server
+// Copyright (c) 2022, The Butler Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
+package server
+
+import (
+	"github.com/butdotdev/butler/pkg/healthcheck"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"net"
+	"net/http"
+)
+
+// HTTPServerParams is a struct of http parameters
+type HTTPServerParams struct {
+	HostPort    string
+	Logger      *zap.Logger
+	HealthCheck *healthcheck.HealthCheck
+}
+
+// StartHttpServer based on the given parameters
+func StartHttpServer(params *HTTPServerParams) (*http.Server, error) {
+	params.Logger.Info("Starting the Butler HTTP Server")
+	errorLog, _ := zap.NewStdLogAt(params.Logger, zapcore.ErrorLevel)
+
+	server := &http.Server{
+		Addr:     params.HostPort,
+		ErrorLog: errorLog,
+	}
+	listener, err := net.Listen("tcp", params.HostPort)
+	if err != nil {
+		return nil, err
+	}
+	serveHTTP(server, listener, params)
+	return server, nil
+}
+
+func serveHTTP(server *http.Server, listener net.Listener, params *HTTPServerParams) {
+	go func() {
+		var err error = server.Serve(listener)
+		if err != nil {
+			if err != http.ErrServerClosed {
+				params.Logger.Error("Could Not Start HTTP Server", zap.Error(err))
+			}
+		}
+		params.HealthCheck.Set(healthcheck.Unavailable)
+	}()
+
+}
