@@ -17,6 +17,7 @@
 package server
 
 import (
+	"github.com/butdotdev/butler/pkg/config/tlscfg"
 	"github.com/butdotdev/butler/pkg/healthcheck"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -29,6 +30,7 @@ type HTTPServerParams struct {
 	HostPort    string
 	Logger      *zap.Logger
 	HealthCheck *healthcheck.HealthCheck
+	TLSConfig   tlscfg.Options
 }
 
 // StartHttpServer based on the given parameters
@@ -40,6 +42,13 @@ func StartHttpServer(params *HTTPServerParams) (*http.Server, error) {
 		Addr:     params.HostPort,
 		ErrorLog: errorLog,
 	}
+	if params.TLSConfig.Enabled {
+		tlsCfg, err := params.TLSConfig.Config(params.Logger) //checks for certs
+		if err != nil {
+			return nil, err
+		}
+		server.TLSConfig = tlsCfg
+	}
 	listener, err := net.Listen("tcp", params.HostPort)
 	if err != nil {
 		return nil, err
@@ -50,7 +59,12 @@ func StartHttpServer(params *HTTPServerParams) (*http.Server, error) {
 
 func serveHTTP(server *http.Server, listener net.Listener, params *HTTPServerParams) {
 	go func() {
-		var err error = server.Serve(listener)
+		var err error
+		if params.TLSConfig.Enabled {
+			err = server.ServeTLS(listener, "", "")
+		} else {
+			err = server.Serve(listener)
+		}
 		if err != nil {
 			if err != http.ErrServerClosed {
 				params.Logger.Error("Could Not Start HTTP Server", zap.Error(err))
