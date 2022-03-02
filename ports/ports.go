@@ -25,6 +25,7 @@ const (
 
 	// WebHTTP is the default web HTTP port
 	WebHTTP = 3000
+	Carbon  = 2003
 )
 
 // FormatHostPort returns hostPort in a usable format (host:port)

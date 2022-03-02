@@ -24,6 +24,7 @@ import (
 	"github.com/butdotdev/butler/cmd/status"
 	"github.com/butdotdev/butler/cmd/web/app"
 	"github.com/butdotdev/butler/pkg/config"
+	"github.com/butdotdev/butler/cmd/cache/carbon"
 	"github.com/butdotdev/butler/ports"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -74,6 +75,38 @@ func main() {
 		app.AddFlags,
 	)
 	if err := command.Execute(); err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	svcCarbon := flags.NewService(ports.Carbon)
+	vCarbon := viper.New()
+	carbonCommand := &cobra.Command{
+		Use:   "butler-all-in-one",
+		Short: "butler all in one",
+		Long:  `Full butler distribution, if set. `,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := svcCarbon.Start(vCarbon); err != nil {
+				return err
+			}
+			logger := svcCarbon.Logger
+
+			w := carbon.New(&carbon.Config{
+				FlagOne: "placeholder",
+			})
+			if err := w.Start(); err != nil {
+				logger.Fatal("Failed to start the carbon process", zap.Error(err))
+			}
+			svcCarbon.RunAndThen(func() {
+				if err := w.Stop(); err != nil {
+					logger.Error("failed to cleanly close the carbon process", zap.Error(err))
+				}
+			})
+			return nil
+		},
+	}
+
+	if err := carbonCommand.Execute(); err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
