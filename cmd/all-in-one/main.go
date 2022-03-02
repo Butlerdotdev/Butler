@@ -58,8 +58,9 @@ func main() {
 			w.Start(webOpts)
 
 			carbon := carbon.New(&carbon.Config{
-				FlagOne: "placeholder",
-				Logger:  logger,
+				GRPCAddress:   ":7001",
+				CarbonAddress: ":2003",
+				Logger:        logger,
 			})
 			if err := carbon.Start(); err != nil {
 				logger.Fatal("Failed to start the carbon process", zap.Error(err))

@@ -20,9 +20,11 @@ package carbon
 // https://github.com/go-graphite/go-carbon/blob/98c69c8600966ef8b42f57944004dde177b1374c/carbon/app.go
 
 import (
+	"github.com/go-graphite/go-carbon/api"
 	"github.com/go-graphite/go-carbon/cache"
 	"github.com/go-graphite/go-carbon/receiver"
 	"go.uber.org/zap"
+	"net"
 	"sync"
 	"time"
 
@@ -35,15 +37,6 @@ type NamedReceiver struct {
 	Name string
 }
 
-// Wrapper for time.Duration that go-carbon uses and expects
-type Duration struct {
-	time.Duration
-}
-
-func (d *Duration) Value() time.Duration {
-	return d.Duration
-}
-
 type Options struct {
 	Listen     string
 	Enabled    bool
@@ -52,14 +45,15 @@ type Options struct {
 
 type Common struct {
 	GraphPrefix    string
-	MetricInterval *Duration
+	MetricInterval time.Duration
 	MetricEndpoint string
 }
 
 type Config struct {
-	FlagOne string
-	Logger  *zap.Logger
-	Common  *Common
+	GRPCAddress   string
+	CarbonAddress string
+	Logger        *zap.Logger
+	Common        *Common
 }
 
 // type App struct {
@@ -81,8 +75,10 @@ type Config struct {
 
 type App struct {
 	sync.RWMutex
+	Api         *api.Api
 	Config      *Config
 	Cache       *cache.Cache
+	Collector   *Collector
 	Logger      *zap.Logger
 	exit        chan bool
 	FlushTraces func()
@@ -90,10 +86,11 @@ type App struct {
 }
 
 func New(config *Config) *App {
+	// TODO: Make this configurable
 	var duration, _ = time.ParseDuration("1m0s")
 	config.Common = &Common{
 		GraphPrefix:    "carbon.agents.{host}",
-		MetricInterval: &Duration{duration},
+		MetricInterval: duration,
 		MetricEndpoint: "local",
 	}
 	app := &App{
@@ -114,6 +111,27 @@ func (app *App) stopAll() {
 			app.Logger.Debug("receiver stopped", zap.String("name", app.Receivers[i].Name))
 		}
 		app.Receivers = nil
+	}
+
+	if app.Api != nil {
+		app.Api.Stop()
+		app.Api = nil
+		app.Logger.Debug("api stopped")
+	}
+
+	// if app.Carbonserver != nil {
+	// 	carbonserver := app.Carbonserver
+	// 	go func() {
+	// 		carbonserver.Stop()
+	// 		app.Logger.Debug("carbonserver stopped")
+	// 	}()
+	// 	app.Carbonserver = nil
+	// }
+
+	if app.Collector != nil {
+		app.Collector.Stop()
+		app.Collector = nil
+		app.Logger.Debug("collector stopped")
 	}
 
 	if app.Cache != nil {
@@ -150,14 +168,28 @@ func (app *App) Start() (err error) {
 
 	app.Cache = core
 
+	// Start gRPC API
+	var grpcAddr *net.TCPAddr
+	grpcAddr, err = net.ResolveTCPAddr("tcp", app.Config.GRPCAddress)
+	if err != nil {
+		return
+	}
+
+	grpcApi := api.New(core)
+
+	if err = grpcApi.Listen(grpcAddr); err != nil {
+		return
+	}
+
+	app.Api = grpcApi
+
 	// Starts UDP and TCP Receivers
 	app.Receivers = make([]*NamedReceiver, 0)
 	var rcv receiver.Receiver
 	var rcvOptions map[string]interface{}
 
-	// TODO: Make this port configurable
 	var options = &Options{
-		Listen:     ":2003",
+		Listen:     app.Config.CarbonAddress,
 		Enabled:    true,
 		BufferSize: 0,
 	}
@@ -184,11 +216,13 @@ func (app *App) Start() (err error) {
 		Name:     "tcp",
 	})
 
-	//app.Collector = NewCollector(app)
+	// Starts Stat Collector For Carbon
+	app.Collector = NewCollector(app)
 
 	return nil
 }
 
+// TODO: Evaluate if this is needed
 func (app *App) Loop() {
 	app.RLock()
 	exitChan := app.exit
@@ -198,3 +232,6 @@ func (app *App) Loop() {
 		<-app.exit
 	}
 }
+
+// TODO: add carbonserver
+// TODO: add carbonapi
