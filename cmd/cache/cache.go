@@ -16,6 +16,8 @@
 
 package main
 
+// TODO: Do something with this file if needed? As more caches are added it might be ideal to move them here instead of all in one main
+
 // Follows format from here
 // https://github.com/go-graphite/go-carbon/blob/98c69c8600966ef8b42f57944004dde177b1374c/carbon/app.go
 
@@ -32,15 +34,15 @@ import (
 
 type App struct {
 	sync.RWMutex
-	Config         *Config
-	Carbon         *cache.carbon
-	exit           chan bool
+	Config *Config
+	Carbon *cache.carbon
+	exit   chan bool
 }
 
 func New(config *config) *App {
 	app := &App{
-		Config:         config,
-		exit:           make(chan bool),
+		Config: config,
+		exit:   make(chan bool),
 	}
 
 	return app

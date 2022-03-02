@@ -19,12 +19,12 @@ package main
 import (
 	"fmt"
 	"github.com/butdotdev/butler/cmd/all-in-one/setupcontext"
+	"github.com/butdotdev/butler/cmd/cache/carbon"
 	"github.com/butdotdev/butler/cmd/docs"
 	"github.com/butdotdev/butler/cmd/flags"
 	"github.com/butdotdev/butler/cmd/status"
 	"github.com/butdotdev/butler/cmd/web/app"
 	"github.com/butdotdev/butler/pkg/config"
-	"github.com/butdotdev/butler/cmd/cache/carbon"
 	"github.com/butdotdev/butler/ports"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -93,6 +93,7 @@ func main() {
 
 			w := carbon.New(&carbon.Config{
 				FlagOne: "placeholder",
+				Logger:  logger,
 			})
 			if err := w.Start(); err != nil {
 				logger.Fatal("Failed to start the carbon process", zap.Error(err))
