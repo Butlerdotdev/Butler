@@ -127,6 +127,7 @@ func (app *App) Stop() (err error) {
 	app.Lock()
 	defer app.Unlock()
 	app.stopAll()
+	app.Logger.Info("carbon shutdown complete")
 
 	return nil
 }

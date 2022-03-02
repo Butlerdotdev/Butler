@@ -56,9 +56,21 @@ func main() {
 				logger.Fatal("Failed to start the web server", zap.Error(err))
 			}
 			w.Start(webOpts)
+
+			carbon := carbon.New(&carbon.Config{
+				FlagOne: "placeholder",
+				Logger:  logger,
+			})
+			if err := carbon.Start(); err != nil {
+				logger.Fatal("Failed to start the carbon process", zap.Error(err))
+			}
+
 			svc.RunAndThen(func() {
 				if err := w.Close(); err != nil {
 					logger.Error("failed to cleanly close the http server", zap.Error(err))
+				}
+				if err := carbon.Stop(); err != nil {
+					logger.Error("failed to cleanly close the carbon process", zap.Error(err))
 				}
 			})
 			return nil
@@ -79,36 +91,4 @@ func main() {
 		os.Exit(1)
 	}
 
-	svcCarbon := flags.NewService(ports.Carbon)
-	vCarbon := viper.New()
-	carbonCommand := &cobra.Command{
-		Use:   "butler-all-in-one",
-		Short: "butler all in one",
-		Long:  `Full butler distribution, if set. `,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := svcCarbon.Start(vCarbon); err != nil {
-				return err
-			}
-			logger := svcCarbon.Logger
-
-			w := carbon.New(&carbon.Config{
-				FlagOne: "placeholder",
-				Logger:  logger,
-			})
-			if err := w.Start(); err != nil {
-				logger.Fatal("Failed to start the carbon process", zap.Error(err))
-			}
-			svcCarbon.RunAndThen(func() {
-				if err := w.Stop(); err != nil {
-					logger.Error("failed to cleanly close the carbon process", zap.Error(err))
-				}
-			})
-			return nil
-		},
-	}
-
-	if err := carbonCommand.Execute(); err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
 }
