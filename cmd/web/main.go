@@ -18,6 +18,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/butdotdev/butler/cmd/docs"
 	"github.com/butdotdev/butler/cmd/flags"
 	"github.com/butdotdev/butler/cmd/status"
 	"github.com/butdotdev/butler/cmd/web/app"
@@ -35,9 +36,9 @@ func main() {
 	svc := flags.NewService(ports.WebHTTP)
 	v := viper.New()
 	command := &cobra.Command{
-		Use:   "butler-http",
-		Short: "butler http is the main http server for butler",
-		Long:  `Butler http is the server that runs and serves the butler frontend.`,
+		Use:   "butler-web",
+		Short: "butler web is the main http server for butler",
+		Long:  `Butler web is the server that runs and serves the butler frontend.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := svc.Start(v); err != nil {
 				return err
@@ -65,6 +66,7 @@ func main() {
 	}
 
 	command.AddCommand(status.Command(v, ports.WebHTTP))
+	command.AddCommand(docs.Command(v))
 
 	config.AddFlags(
 		v,
