@@ -22,6 +22,7 @@ package carbon
 import (
 	"github.com/go-graphite/go-carbon/api"
 	"github.com/go-graphite/go-carbon/cache"
+	"github.com/go-graphite/go-carbon/carbonserver"
 	"github.com/go-graphite/go-carbon/receiver"
 	"go.uber.org/zap"
 	"net"
@@ -50,39 +51,32 @@ type Common struct {
 }
 
 type Config struct {
-	GRPCAddress   string
-	CarbonAddress string
-	Logger        *zap.Logger
-	Common        *Common
+	GRPCAddress         string
+	CarbonAddress       string
+	CarbonserverAddress string
+	Logger              *zap.Logger
+	Common              *Common
 }
 
 // type App struct {
-// 	sync.RWMutex
-// 	Config         *Config
-// 	Api            *api.Api
-// 	Cache          *cache.Cache
-// 	Receivers      []*NamedReceiver
 // 	CarbonLink     *cache.CarbonlinkListener
-// 	Persister      *persister.Whisper
-// 	Carbonserver   *carbonserver.CarbonserverListener
 // 	Tags           *tags.Tags
-// 	Collector      *Collector // (!!!) Should be re-created on every change config/modules
 // 	PromRegisterer prometheus.Registerer
 // 	PromRegistry   *prometheus.Registry
-// 	exit           chan bool
 // 	FlushTraces    func()
 // }
 
 type App struct {
 	sync.RWMutex
-	Api         *api.Api
-	Config      *Config
-	Cache       *cache.Cache
-	Collector   *Collector
-	Logger      *zap.Logger
-	exit        chan bool
-	FlushTraces func()
-	Receivers   []*NamedReceiver
+	Api          *api.Api
+	Config       *Config
+	Cache        *cache.Cache
+	Collector    *Collector
+	Carbonserver *carbonserver.CarbonserverListener
+	Logger       *zap.Logger
+	exit         chan bool
+	FlushTraces  func()
+	Receivers    []*NamedReceiver
 }
 
 func New(config *Config) *App {
@@ -119,14 +113,14 @@ func (app *App) stopAll() {
 		app.Logger.Debug("api stopped")
 	}
 
-	// if app.Carbonserver != nil {
-	// 	carbonserver := app.Carbonserver
-	// 	go func() {
-	// 		carbonserver.Stop()
-	// 		app.Logger.Debug("carbonserver stopped")
-	// 	}()
-	// 	app.Carbonserver = nil
-	// }
+	if app.Carbonserver != nil {
+		carbonserver := app.Carbonserver
+		go func() {
+			carbonserver.Stop()
+			app.Logger.Debug("carbonserver stopped")
+		}()
+		app.Carbonserver = nil
+	}
 
 	if app.Collector != nil {
 		app.Collector.Stop()
@@ -216,6 +210,24 @@ func (app *App) Start() (err error) {
 		Name:     "tcp",
 	})
 
+	// Starts Carbonserver
+	carbonserver := carbonserver.NewCarbonserverListener(core.Get)
+	var scanFrequency, _ = time.ParseDuration("1m0s")
+	carbonserver.SetScanFrequency(scanFrequency)
+	carbonserver.SetTrigramIndex(false)
+	carbonserver.SetTrieIndex(true)
+
+	core.InitCacheScanAdds()
+	carbonserver.SetCacheGetMetricsFunc(core.GetRecentNewMetrics)
+
+	// TODO: determine if real time index is wanted
+	ch := carbonserver.SetRealtimeIndex(100)
+	core.SetNewMetricsChan(ch)
+
+	carbonserver.Listen(app.Config.CarbonserverAddress)
+	carbonserver.RegisterInternalInfoHandler("cache", core.GetInfo)
+	app.Carbonserver = carbonserver
+
 	// Starts Stat Collector For Carbon
 	app.Collector = NewCollector(app)
 
@@ -233,5 +245,4 @@ func (app *App) Loop() {
 	}
 }
 
-// TODO: add carbonserver
 // TODO: add carbonapi
