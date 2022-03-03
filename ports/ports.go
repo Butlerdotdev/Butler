@@ -24,7 +24,8 @@ import (
 const (
 
 	// WebHTTP is the default web HTTP port
-	WebHTTP = 3000
+	WebHTTP      = 3000
+	HTTPHostPort = 3001
 	// Carbon is the default Carbon port
 	Carbon = 2003
 	// WebGRPC is the default GRPC port
