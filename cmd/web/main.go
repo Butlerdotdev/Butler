@@ -54,7 +54,6 @@ func main() {
 			if err := w.Start(webOpts); err != nil {
 				logger.Fatal("Failed to start the web server", zap.Error(err))
 			}
-			w.Start(webOpts)
 			svc.RunAndThen(func() {
 				if err := w.Close(); err != nil {
 					logger.Error("failed to cleanly close the http server", zap.Error(err))
