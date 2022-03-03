@@ -55,7 +55,6 @@ func main() {
 			if err := w.Start(webOpts); err != nil {
 				logger.Fatal("Failed to start the web server", zap.Error(err))
 			}
-			w.Start(webOpts)
 
 			carbon := carbon.New(&carbon.Config{
 				GRPCAddress:   ":7001",

@@ -17,8 +17,10 @@
 package server
 
 import (
+	"github.com/butdotdev/butler/cmd/web/app/handler"
 	"github.com/butdotdev/butler/pkg/config/tlscfg"
 	"github.com/butdotdev/butler/pkg/healthcheck"
+	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"net"
@@ -35,12 +37,16 @@ type HTTPServerParams struct {
 
 // StartHttpServer based on the given parameters
 func StartHttpServer(params *HTTPServerParams) (*http.Server, error) {
+	router := mux.NewRouter()
+	spa := handler.SpaHandler{StaticPath: "../../butler-ui/packages/butler-ui/build", IndexPath: "../../butler-ui/packages/butler-ui/build/index.html"}
+	router.PathPrefix("/").Handler(spa)
 	params.Logger.Info("Starting the Butler HTTP Server")
 	errorLog, _ := zap.NewStdLogAt(params.Logger, zapcore.ErrorLevel)
 
 	server := &http.Server{
 		Addr:     params.HostPort,
 		ErrorLog: errorLog,
+		Handler:  router,
 	}
 	if params.TLSConfig.Enabled {
 		tlsCfg, err := params.TLSConfig.Config(params.Logger) //checks for certs

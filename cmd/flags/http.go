@@ -18,9 +18,11 @@ package flags
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/butdotdev/butler/pkg/healthcheck"
+	"github.com/gorilla/mux"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -95,11 +97,16 @@ func (s *Server) Serve() error {
 }
 
 func (s *Server) serveWithListener(l net.Listener) {
+	router := mux.NewRouter()
+	router.HandleFunc("/healthy", func(w http.ResponseWriter, r *http.Request) {
+		json.NewEncoder(w).Encode(map[string]bool{"ok": true})
+	})
 	s.logger.Info("Mounting health check on server", zap.String("route", "/healthy"))
 	s.mux.Handle("/healthy", s.hc.Handler())
 	errorLog, _ := zap.NewStdLogAt(s.logger, zapcore.ErrorLevel)
 	s.server = &http.Server{
 		ErrorLog: errorLog,
+		Handler:  router,
 	}
 
 	s.logger.Info("Starting HTTP server", zap.String("http-addr", s.hostPort))

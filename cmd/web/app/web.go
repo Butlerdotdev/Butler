@@ -34,6 +34,8 @@ type Web struct {
 	hCheck      *healthcheck.HealthCheck
 	hServer     *http.Server
 	grpcServer  *grpc.Server
+	mux         *http.ServeMux
+	hc          *healthcheck.HealthCheck
 }
 
 // WebParams to construct a new web
@@ -43,12 +45,14 @@ type WebParams struct {
 	HealthCheck *healthcheck.HealthCheck
 }
 
-// New constructs a new collector component
+// New constructs a new web component
 func New(params *WebParams) *Web {
 	return &Web{
 		serviceName: params.ServiceName,
 		logger:      params.Logger,
 		hCheck:      params.HealthCheck,
+		hc:          healthcheck.New(),
+		mux:         http.NewServeMux(),
 	}
 }
 
@@ -65,9 +69,8 @@ func (w *Web) Start(builderOpts *WebOptions) error {
 	w.hServer = httpServer
 
 	grpcServer, err := server.StartGRPCServer(&server.GRPCServerParams{
-		TLSConfig: builderOpts.TLSGRPC,
-		HostPort:  builderOpts.WebGRPCHostPort,
-		//Handler:                 *handler.GRPCHandler,
+		TLSConfig:               builderOpts.TLSGRPC,
+		HostPort:                builderOpts.WebGRPCHostPort,
 		Logger:                  w.logger,
 		MaxReceiveMessageLength: builderOpts.WebGRPCMaxReceiveMessageLength,
 		MaxConnectionAge:        builderOpts.WebGRPCMaxConnectionAge,
