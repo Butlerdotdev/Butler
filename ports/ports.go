@@ -25,7 +25,10 @@ const (
 
 	// WebHTTP is the default web HTTP port
 	WebHTTP = 3000
-	Carbon  = 2003
+	// Carbon is the default Carbon port
+	Carbon = 2003
+	// WebGRPC is the default GRPC port
+	WebGRPC = 9998
 )
 
 // FormatHostPort returns hostPort in a usable format (host:port)
