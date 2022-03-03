@@ -22,6 +22,7 @@ import (
 	"github.com/butdotdev/butler/cmd/web/app/server"
 	"github.com/butdotdev/butler/pkg/healthcheck"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 	"net/http"
 	"time"
 )
@@ -32,6 +33,7 @@ type Web struct {
 	logger      *zap.Logger
 	hCheck      *healthcheck.HealthCheck
 	hServer     *http.Server
+	grpcServer  *grpc.Server
 }
 
 // WebParams to construct a new web
@@ -62,11 +64,27 @@ func (w *Web) Start(builderOpts *WebOptions) error {
 	}
 	w.hServer = httpServer
 
+	grpcServer, err := server.StartGRPCServer(&server.GRPCServerParams{
+		TLSConfig: builderOpts.TLSGRPC,
+		HostPort:  builderOpts.WebGRPCHostPort,
+		//Handler:                 *handler.GRPCHandler,
+		Logger:                  w.logger,
+		MaxReceiveMessageLength: builderOpts.WebGRPCMaxReceiveMessageLength,
+		MaxConnectionAge:        builderOpts.WebGRPCMaxConnectionAge,
+		MaxConnectionAgeGrace:   builderOpts.WebGRPCMaxConnectionAgeGrace,
+	})
+	if err != nil {
+		return fmt.Errorf("could not start gRPC server %w", err)
+	}
+	w.grpcServer = grpcServer
 	return nil
 }
 
 // Close the component and all dependencies
 func (w *Web) Close() error {
+	if w.grpcServer != nil {
+		w.grpcServer.GracefulStop()
+	}
 	if w.hServer != nil {
 		timeout, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		if err := w.hServer.Shutdown(timeout); err != nil {
