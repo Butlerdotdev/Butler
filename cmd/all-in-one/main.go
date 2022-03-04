@@ -57,9 +57,10 @@ func main() {
 			}
 
 			carbon := carbon.New(&carbon.Config{
-				GRPCAddress:   ":7001",
-				CarbonAddress: ":2003",
-				Logger:        logger,
+				GRPCAddress:         ":7001",
+				CarbonAddress:       ":2003",
+				CarbonserverAddress: ":8001",
+				Logger:              logger,
 			})
 			if err := carbon.Start(); err != nil {
 				logger.Fatal("Failed to start the carbon process", zap.Error(err))
