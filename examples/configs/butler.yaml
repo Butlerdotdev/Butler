@@ -1,0 +1,44 @@
+#butler web server
+web-server:
+  127.0.0.1:3000
+
+#Main Health Check
+health-server:
+  127.0.0.1:3001
+
+#gRPC server
+grpc-server.host-port:
+  127.0.0.1:9998
+
+# The max amount of time a connection may exist. Set this value to a few secs or minutes on highly elastic envs (default 0s)
+#grpc-server.max-connection-age duration:
+
+# The additive period after MaxConnectionAge after which the connection will forcibly close. See https://pkg.go.dev/google.golang.org/grpc/keepalive#ServerParameters (default 0s)
+#grpc-server.max-connection-age-grace duration:
+
+#The host:port (e.g. 127.0.0.1:3000 ) of Butler's HTTP server (default ":3000") (string)
+#web-server:
+
+#Path to a TLS cert file, used to Identify this server to clients (string)
+#web.grpc.tls.cert:
+
+#Path to a TLS CA file used to verify certs presented by clients (if unset, all clients are permitted (string)
+#web.grpc.tls.client-ca:
+
+#Enable TLS on the gRPC server (bool)
+#web.grpc.tls.enabled:
+
+#Path to a TLS Private Key file, used to identify this server to clients (string)
+#web.grpc.tls.key:
+
+#Path to a TLS cert file, used to Identify this server to clients (string)
+#web.http.tls.cert:
+
+#Path to a TLS CA file used to verify certs presented by clients (if unset, all clients are permitted (string)
+#web.http.tls.client-ca:
+
+#Enable TLS on the http server (bool)
+#web.http.tls.enabled:
+
+#Path to a TLS Private Key file, used to identify this server to clients (string)
+#web.http.tls.key:
