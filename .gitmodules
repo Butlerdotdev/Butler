@@ -1,3 +1,6 @@
 [submodule "butler-proto"]
 	path = butler-proto
 	url = https://github.com/Butlerdotdev/butler-proto
+[submodule "butler-ui"]
+	path = butler-ui
+	url = https://github.com/Butlerdotdev/butler-ui
