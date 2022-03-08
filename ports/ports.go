@@ -28,6 +28,8 @@ const (
 	HTTPHostPort = 3001
 	// Carbon is the default Carbon port
 	Carbon = 2003
+	// Carbonserver is the default Carbonserver port
+	Carbonserver = 8001
 	// WebGRPC is the default GRPC port
 	WebGRPC = 9998
 )
