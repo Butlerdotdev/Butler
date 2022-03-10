@@ -58,11 +58,11 @@ func main() {
 			}
 
 			carbonCache := carbon.NewCarbon(&carbon.Config{
-				IngestPort:       2003,
-				CarbonQueryPort:  8001,
-				Logger:              logger,
-				MetricInterval: 60*time.Second,
-				GraphiteHost: "",
+				IngestPort:      2003,
+				CarbonQueryPort: 8001,
+				Logger:          logger,
+				MetricInterval:  60 * time.Second,
+				GraphiteHost:    "",
 			})
 			if err := carbon.Start(carbonCache); err != nil {
 				logger.Fatal("Failed to start the carbon process", zap.Error(err))

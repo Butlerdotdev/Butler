@@ -35,8 +35,8 @@ import (
 
 	"go.uber.org/zap"
 
-	pb "github.com/go-graphite/protocol/carbonapi_v3_pb"
 	"github.com/go-graphite/carbonzipper/mstats"
+	pb "github.com/go-graphite/protocol/carbonapi_v3_pb"
 
 	"github.com/peterbourgon/g2g"
 
@@ -55,17 +55,17 @@ var Metrics = struct {
 }
 
 type Config struct {
-	IngestPort       int
+	IngestPort      int
 	CarbonQueryPort int
-	Logger              *zap.Logger
-	MetricInterval time.Duration
-	GraphiteHost string
+	Logger          *zap.Logger
+	MetricInterval  time.Duration
+	GraphiteHost    string
 }
 
 type App struct {
 	sync.RWMutex
-	Config       *Config
-	Logger       *zap.Logger
+	Config *Config
+	Logger *zap.Logger
 }
 
 func NewCarbon(config *Config) *App {
@@ -79,7 +79,7 @@ func NewCarbon(config *Config) *App {
 	return app
 }
 
-func Start(app *App) (err error){
+func Start(app *App) (err error) {
 	Whispers.metrics = make(map[string]*mwhisper.Whisper)
 
 	expvar.NewString("BuildVersion").Set(BuildVersion)
@@ -137,7 +137,7 @@ func Start(app *App) (err error){
 	http.HandleFunc("/render/", accessHandler(false, renderHandler))
 
 	app.Logger.Info("carbon query http server starting on port", zap.Int("carbon query port", app.Config.CarbonQueryPort))
-	go func(){
+	go func() {
 		http.ListenAndServe(":"+strconv.Itoa(app.Config.CarbonQueryPort), nil)
 	}()
 
@@ -364,7 +364,7 @@ func graphiteServer(port int) {
 		logger.Error("listen error", zap.Error(e))
 	}
 
-	logger.Info("graphite server starting on port", zap.Int("port",port))
+	logger.Info("graphite server starting on port", zap.Int("port", port))
 
 	for {
 		conn, err := ln.Accept()
@@ -543,6 +543,6 @@ func accessHandler(verbose bool, handler http.HandlerFunc) http.HandlerFunc {
 		t0 := time.Now()
 		handler(w, r)
 		since := time.Since(t0)
-		logger.Info(r.RequestURI, zap.Int64("request time (ms)",since.Nanoseconds()/int64(time.Millisecond)))
+		logger.Info(r.RequestURI, zap.Int64("request time (ms)", since.Nanoseconds()/int64(time.Millisecond)))
 	}
 }
