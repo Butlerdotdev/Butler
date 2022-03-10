@@ -16,8 +16,29 @@
 
 package handler
 
-import "go.uber.org/zap"
+import (
+	"context"
+	"github.com/butdotdev/butler/proto-gen/api_v1"
+	"go.uber.org/zap"
+)
 
+// GRPCHandler is the handler for gRPC
 type GRPCHandler struct {
-	logger *zap.Logger
+	logger                               *zap.Logger
+	api_v1.UnimplementedWebServiceServer // this is dumb
+}
+
+// NewGRPCHandler creates a new gRPC handler
+func NewGRPCHandler(logger *zap.Logger) *GRPCHandler {
+	return &GRPCHandler{
+		logger: logger,
+	}
+}
+
+// GetAlert returns the GetAlertResponse to the gRPC client that called it
+func (g *GRPCHandler) GetAlert(ctx context.Context, r *api_v1.GetAlertRequest) (*api_v1.GetAlertResponse, error) {
+	alert := make(map[string]string)
+	g.logger.Info("Handling request for Get Alert..This is a test for demo purposes")
+	alert["alert"] = "details"
+	return &api_v1.GetAlertResponse{Alert: alert}, nil
 }

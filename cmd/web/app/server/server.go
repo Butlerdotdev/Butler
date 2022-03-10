@@ -60,6 +60,7 @@ func StartHttpServer(params *HTTPServerParams) (*http.Server, error) {
 		return nil, err
 	}
 	serveHTTP(server, listener, params)
+	params.Logger.Info("Butler HTTP server started", zap.String("http-addr", params.HostPort))
 	return server, nil
 }
 
@@ -78,5 +79,4 @@ func serveHTTP(server *http.Server, listener net.Listener, params *HTTPServerPar
 		}
 		params.HealthCheck.Set(healthcheck.Unavailable)
 	}()
-
 }

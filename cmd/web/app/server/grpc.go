@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"github.com/butdotdev/butler/cmd/web/app/handler"
 	"github.com/butdotdev/butler/pkg/config/tlscfg"
+	"github.com/butdotdev/butler/pkg/healthcheck"
+	"github.com/butdotdev/butler/proto-gen/api_v1"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -29,6 +31,7 @@ import (
 	"time"
 )
 
+// GRPCServerParams is a struct that holds the parameters for a gRPC server
 type GRPCServerParams struct {
 	TLSConfig               tlscfg.Options
 	HostPort                string
@@ -36,6 +39,7 @@ type GRPCServerParams struct {
 	Logger                  *zap.Logger
 	OnError                 func(error)
 	MaxReceiveMessageLength int
+	unavailableChannel      chan healthcheck.Status
 	MaxConnectionAge        time.Duration
 	MaxConnectionAgeGrace   time.Duration
 	HostPortActual          string // set by the server to determine the actual host:port of the server itself
@@ -61,6 +65,7 @@ func StartGRPCServer(params *GRPCServerParams) (*grpc.Server, error) {
 		creds := credentials.NewTLS(tlsCfg)
 		grpcOpts = append(grpcOpts, grpc.Creds(creds))
 	}
+
 	server = grpc.NewServer(grpcOpts...)
 	reflection.Register(server)
 
@@ -76,9 +81,11 @@ func StartGRPCServer(params *GRPCServerParams) (*grpc.Server, error) {
 	return server, nil
 }
 
+// serveGRPC serves the rpc server
 func serveGRPC(server *grpc.Server, listener net.Listener, params *GRPCServerParams) error {
-	// TODO register services
 
+	nGRPCHandler := handler.NewGRPCHandler(params.Logger)
+	api_v1.RegisterWebServiceServer(server, nGRPCHandler)
 	params.Logger.Info("Starting Butler gRPC server", zap.String("grpc.host-port", params.HostPortActual))
 	go func() {
 		if err := server.Serve(listener); err != nil {
@@ -86,7 +93,9 @@ func serveGRPC(server *grpc.Server, listener net.Listener, params *GRPCServerPar
 			if params.OnError != nil {
 				params.OnError(err)
 			}
+			params.unavailableChannel <- healthcheck.Unavailable
 		}
 	}()
+	params.Logger.Info("Butler gRPC server started", zap.String("grpc.host-port", params.HostPortActual))
 	return nil
 }
