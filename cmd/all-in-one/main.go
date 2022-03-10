@@ -30,6 +30,7 @@ import (
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"os"
+	"time"
 )
 
 func main() {
@@ -56,13 +57,14 @@ func main() {
 				logger.Fatal("Failed to start the web server", zap.Error(err))
 			}
 
-			carbon := carbon.New(&carbon.Config{
-				GRPCAddress:         ":7001",
-				CarbonAddress:       ":2003",
-				CarbonserverAddress: ":8001",
-				Logger:              logger,
+			carbonCache := carbon.NewCarbon(&carbon.Config{
+				IngestPort:      2003,
+				CarbonQueryPort: 8001,
+				Logger:          logger,
+				MetricInterval:  60 * time.Second,
+				GraphiteHost:    "",
 			})
-			if err := carbon.Start(); err != nil {
+			if err := carbon.Start(carbonCache); err != nil {
 				logger.Fatal("Failed to start the carbon process", zap.Error(err))
 			}
 
@@ -70,7 +72,7 @@ func main() {
 				if err := w.Close(); err != nil {
 					logger.Error("failed to cleanly close the http server", zap.Error(err))
 				}
-				if err := carbon.Stop(); err != nil {
+				if err := carbon.Stop(carbonCache); err != nil {
 					logger.Error("failed to cleanly close the carbon process", zap.Error(err))
 				}
 			})
