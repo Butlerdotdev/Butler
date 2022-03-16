@@ -22,17 +22,17 @@
 # of tokens assuming they have equal hardware capability.
 #
 # If you already have a cluster with 1 token per node, and wish to migrate to
-# multiple tokens per node, see http://wiki.apache.org/cassandra/Operations
+# multiple tokens per node, see http://wiki.apache.org/scylla/Operations
 num_tokens: 256
 
 # Directory where Scylla should store data on disk.
-# If not set, the default directory is $CASSANDRA_HOME/data/data.
+# If not set, the default directory is $scylla_HOME/data/data.
 data_file_directories:
   - /var/lib/scylla/data
 
 # commit log.  when running on magnetic HDD, this should be a
 # separate spindle than the data directories.
-# If not set, the default directory is $CASSANDRA_HOME/data/commitlog.
+# If not set, the default directory is $scylla_HOME/data/commitlog.
 commitlog_directory: /var/lib/scylla/commitlog
 
 # commitlog_sync may be either "periodic" or "batch."
@@ -71,7 +71,7 @@ seed_provider:
   # Scylla nodes use this list of hosts to find each other and learn
   # the topology of the ring.  You must change this if you are running
   # multiple nodes!
-  - class_name: org.apache.cassandra.locator.SimpleSeedProvider
+  - class_name: org.apache.scylla.locator.SimpleSeedProvider
     parameters:
       # seeds is actually a comma-delimited list of addresses.
       # Ex: "<ip1>,<ip2>,<ip3>"
@@ -138,12 +138,12 @@ write_request_timeout_in_ms: 2000
 #  - GossipingPropertyFileSnitch
 #    This should be your go-to snitch for production use.  The rack
 #    and datacenter for the local node are defined in
-#    cassandra-rackdc.properties and propagated to other nodes via
-#    gossip.  If cassandra-topology.properties exists, it is used as a
+#    scylla-rackdc.properties and propagated to other nodes via
+#    gossip.  If scylla-topology.properties exists, it is used as a
 #    fallback, allowing migration from the PropertyFileSnitch.
 #  - PropertyFileSnitch:
 #    Proximity is determined by rack and data center, which are
-#    explicitly configured in cassandra-topology.properties.
+#    explicitly configured in scylla-topology.properties.
 #  - Ec2Snitch:
 #    Appropriate for EC2 deployments in a single Region. Loads Region
 #    and Availability Zone information from the EC2 API. The Region is
@@ -207,7 +207,7 @@ batch_size_warn_threshold_in_kb: 5
 batch_size_fail_threshold_in_kb: 50
 
 # Authentication backend, identifying users
-# Out of the box, Scylla provides org.apache.cassandra.auth.{AllowAllAuthenticator,
+# Out of the box, Scylla provides org.apache.scylla.auth.{AllowAllAuthenticator,
 # PasswordAuthenticator}.
 #
 # - AllowAllAuthenticator performs no checks - set it to disable authentication.
@@ -217,11 +217,11 @@ batch_size_fail_threshold_in_kb: 50
 # authenticator: AllowAllAuthenticator
 
 # Authorization backend, implementing IAuthorizer; used to limit access/provide permissions
-# Out of the box, Scylla provides org.apache.cassandra.auth.{AllowAllAuthorizer,
-# CassandraAuthorizer}.
+# Out of the box, Scylla provides org.apache.scylla.auth.{AllowAllAuthorizer,
+# scyllaAuthorizer}.
 #
 # - AllowAllAuthorizer allows any action to any user - set it to disable authorization.
-# - CassandraAuthorizer stores permissions in system_auth.permissions table. Please
+# - scyllaAuthorizer stores permissions in system_auth.permissions table. Please
 #   increase system_auth keyspace replication factor if you use this authorizer.
 # authorizer: AllowAllAuthorizer
 
@@ -243,7 +243,7 @@ batch_size_fail_threshold_in_kb: 50
 # The directory where hints files are stored if hinted handoff is enabled.
 # hints_directory: /var/lib/scylla/hints
 
-# See http://wiki.apache.org/cassandra/HintedHandoff
+# See http://wiki.apache.org/scylla/HintedHandoff
 # May either be "true" or "false" to enable globally, or contain a list
 # of data centers to enable per-datacenter.
 # hinted_handoff_enabled: DC1,DC2
@@ -274,7 +274,7 @@ batch_size_fail_threshold_in_kb: 50
 # batchlog_replay_throttle_in_kb: 1024
 
 # Validity period for permissions cache (fetching permissions can be an
-# expensive operation depending on the authorizer, CassandraAuthorizer is
+# expensive operation depending on the authorizer, scyllaAuthorizer is
 # one example). Defaults to 10000, set to 0 to disable.
 # Will be disabled automatically for AllowAllAuthorizer.
 # permissions_validity_in_ms: 10000
@@ -297,7 +297,7 @@ batch_size_fail_threshold_in_kb: 50
 # compatibility include RandomPartitioner, ByteOrderedPartitioner, and
 # OrderPreservingPartitioner.
 #
-partitioner: org.apache.cassandra.dht.Murmur3Partitioner
+partitioner: org.apache.scylla.dht.Murmur3Partitioner
 
 # Maximum size of the key cache in memory.
 #
@@ -383,13 +383,13 @@ partitioner: org.apache.cassandra.dht.Murmur3Partitioner
 # Supported values are: NativeAllocator, JEMallocAllocator
 #
 # If you intend to use JEMallocAllocator you have to install JEMalloc as library and
-# modify cassandra-env.sh as directed in the file.
+# modify scylla-env.sh as directed in the file.
 #
 # Defaults to NativeAllocator
 # memory_allocator: NativeAllocator
 
 # saved caches
-# If not set, the default directory is $CASSANDRA_HOME/data/saved_caches.
+# If not set, the default directory is $scylla_HOME/data/saved_caches.
 # saved_caches_directory: /var/lib/scylla/saved_caches
 
 
@@ -460,7 +460,7 @@ commitlog_total_space_in_mb: -1
 
 # Internode authentication backend, implementing IInternodeAuthenticator;
 # used to allow/disallow connections from peer nodes.
-# internode_authenticator: org.apache.cassandra.auth.AllowAllInternodeAuthenticator
+# internode_authenticator: org.apache.scylla.auth.AllowAllInternodeAuthenticator
 
 # Whether to start the native transport server.
 # Please note that the address on which the native transport is bound is the
@@ -566,7 +566,7 @@ commitlog_total_space_in_mb: -1
 # will use them to make sure other replicas also know about the deleted rows.
 # With workloads that generate a lot of tombstones, this can cause performance
 # problems and even exaust the server heap.
-# (http://www.datastax.com/dev/blog/cassandra-anti-patterns-queues-and-queue-like-datasets)
+# (http://www.datastax.com/dev/blog/scylla-anti-patterns-queues-and-queue-like-datasets)
 # Adjust the thresholds here if you understand the dangers and want to
 # scan more tombstones anyway.  These thresholds may also be adjusted at runtime
 # using the StorageService mbean.
@@ -678,12 +678,12 @@ commitlog_total_space_in_mb: -1
 # with a single Scylla cluster.
 # NOTE: This is specifically for requests from the client and does
 # not affect inter node communication.
-# org.apache.cassandra.scheduler.NoScheduler - No scheduling takes place
-# org.apache.cassandra.scheduler.RoundRobinScheduler - Round robin of
+# org.apache.scylla.scheduler.NoScheduler - No scheduling takes place
+# org.apache.scylla.scheduler.RoundRobinScheduler - Round robin of
 # client requests to a node with a separate queue for each
 # request_scheduler_id. The scheduler is further customized by
 # request_scheduler_options as described below.
-# request_scheduler: org.apache.cassandra.scheduler.NoScheduler
+# request_scheduler: org.apache.scylla.scheduler.NoScheduler
 
 # Scheduler Options vary based on the type of scheduler
 # NoScheduler - Has no options
