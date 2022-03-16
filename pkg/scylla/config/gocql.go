@@ -13,6 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+// Temporary file, this will be removed after readers/writers have been implemented. Only using this for the
+// utils.bootstrap.go and implementing a keyspace. Keyspace in the future will be initialized via entry script once
+// we actually have a Dockerfile / config files for scylla properly setup.
 
 package config
 
