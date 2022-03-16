@@ -25,10 +25,13 @@ import (
 	"github.com/butdotdev/butler/cmd/status"
 	"github.com/butdotdev/butler/cmd/web/app"
 	"github.com/butdotdev/butler/pkg/config"
+	"github.com/butdotdev/butler/plugin/storage"
 	"github.com/butdotdev/butler/ports"
+	"github.com/butdotdev/butler/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
+	"log"
 	"os"
 	"time"
 )
@@ -37,6 +40,11 @@ func main() {
 	setupcontext.SetAllInOne()
 	svc := flags.NewService(ports.WebHTTP)
 	v := viper.New()
+
+	ruleFactory, err := storage.NewFactory(storage.FactoryConfigFromEnvAndCli(os.Args, os.Stderr))
+	if err != nil {
+		log.Fatalf("cannot initialize rule factory: %v", err)
+	}
 	command := &cobra.Command{
 		Use:   "butler-all-in-one",
 		Short: "butler all in one",
@@ -46,6 +54,14 @@ func main() {
 				return err
 			}
 			logger := svc.Logger
+
+			logger.Info("Bootstrap database...")
+			utils.CreateKeyspace(logger) // need this until I add an actual entrypoint that creates the keyspace.
+
+			ruleFactory.InitFromViper(v, logger)
+			if err := ruleFactory.Initialize(logger); err != nil {
+				logger.Fatal("Failed to init rules factory", zap.Error(err))
+			}
 
 			w := app.New(&app.WebParams{
 				ServiceName: "butler-web",
@@ -88,6 +104,7 @@ func main() {
 		command,
 		svc.AddFlags,
 		app.AddFlags,
+		ruleFactory.AddPipelineFlags,
 	)
 	if err := command.Execute(); err != nil {
 		fmt.Println(err.Error())

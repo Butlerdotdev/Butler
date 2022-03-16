@@ -1,0 +1,41 @@
+version: '3'
+services:
+  butler-scylla1:
+    image:  scylladb/scylla
+    container_name: butler-scylla1
+    command: --smp 1 --broadcast-address 127.0.0.1 --listen-address 0.0.0.0 --broadcast-rpc-address 127.0.0.1 --api-address 0.0.0.0
+    environment:
+      - 'SCYLLA_JMX_ADDR=-ja 0.0.0.0'
+      - 'SCYLLA_JMX_REMOTE=-r'
+    networks:
+      web:
+    expose:
+      - '7199'
+      - '9042'
+
+  butler-scylla2:
+    image: scylladb/scylla
+    container_name: butler-scylla2
+    command: --smp 1 --broadcast-address 127.0.0.1 --listen-address 0.0.0.0 --broadcast-rpc-address 127.0.0.1
+    environment:
+      - 'SCYLLA_JMX_ADDR=-ja 0.0.0.0'
+      - 'SCYLLA_JMX_REMOTE=-r'
+    networks:
+      web:
+    expose:
+      - '7199'
+
+  butler-scylla3:
+    image: scylladb/scylla
+    container_name: butler-scylla3
+    command: --smp 1 --broadcast-address 127.0.0.1 --listen-address 0.0.0.0 --broadcast-rpc-address 127.0.0.1
+    environment:
+      - 'SCYLLA_JMX_ADDR=-ja 0.0.0.0'
+      - 'SCYLLA_JMX_REMOTE=-r'
+    networks:
+      web:
+    expose:
+      - '7199'
+networks:
+  web:
+    driver: bridge
