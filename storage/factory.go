@@ -17,7 +17,6 @@
 package storage
 
 import (
-	"github.com/butdotdev/butler/storage/rulestore"
 	"go.uber.org/zap"
 )
 
@@ -27,5 +26,4 @@ type Factory interface {
 	Initialize(logger *zap.Logger) error
 	CreateRuleReader()
 	CreateRuleWriter()
-	CreateKeySpace() (rulestore.Writer, error)
 }

@@ -20,8 +20,6 @@ import (
 	"flag"
 	"github.com/butdotdev/butler/pkg/scylla"
 	"github.com/butdotdev/butler/pkg/scylla/config"
-	sRuleStore "github.com/butdotdev/butler/plugin/storage/scylla/rulestore"
-	"github.com/butdotdev/butler/storage/rulestore"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
@@ -35,12 +33,6 @@ type Factory struct {
 	Options        *Options
 	primarySession scylla.Session
 	primaryConfig  config.SessionBuilder
-}
-
-// CreateKeySpace implements a NewKeySpace
-func (f *Factory) CreateKeySpace() (rulestore.Writer, error) {
-
-	return sRuleStore.NewKeySpace(f.primarySession, f.logger), nil
 }
 
 // CreateRuleReader implements nothing and is an unused method as of now. Later it will be used to implement a new Reader

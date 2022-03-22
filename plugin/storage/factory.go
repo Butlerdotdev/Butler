@@ -24,10 +24,8 @@ import (
 	"github.com/butdotdev/butler/plugin"
 	"github.com/butdotdev/butler/plugin/storage/scylla"
 	"github.com/butdotdev/butler/storage"
-	"github.com/butdotdev/butler/storage/rulestore"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
-	"log"
 )
 
 const (
@@ -75,29 +73,6 @@ func (f *Factory) Initialize(logger *zap.Logger) error {
 		}
 	}
 	return nil
-}
-
-// CreateKeySpace implements storage.Factory.
-func (f *Factory) CreateKeySpace() (rulestore.Writer, error) {
-	var writers []rulestore.Writer
-	for _, storageType := range f.RuleWriterTypes {
-		factory, ok := f.factories[storageType]
-		if !ok {
-			return nil, fmt.Errorf("no %s backend registered for span store", storageType)
-		}
-		writer, err := factory.CreateKeySpace()
-		if err != nil {
-			return nil, err
-		}
-		writers = append(writers, writer)
-	}
-	var ruleWriter rulestore.Writer
-	if len(f.RuleWriterTypes) == 1 {
-		ruleWriter = writers[0]
-	} else {
-		log.Panic("panic")
-	}
-	return ruleWriter, nil
 }
 
 // InitFromViper implements plugin.Configurable
