@@ -1,0 +1,41 @@
+managementCluster:
+  name: "butler-mgmt"
+  provider: "nutanix"
+
+  # Nutanix API Configuration
+  nutanix:
+    endpoint: 
+    username: 
+    password: 
+    clusterUUID: 
+    subnetUUID: 
+   
+  # Node Configuration (Control Planes & Workers)
+  nodes:
+    - role: "control-plane"
+      count: 3
+      cpu: 4
+      ram: "8GB"
+      disk: "50GB"
+      isoUUID: ""
+    - role: "worker"
+      count: 2
+      cpu: 4
+      ram: "8GB"
+      disk: "50GB"
+      isoUUID: ""
+
+  # Talos Linux Configuration
+  talos:
+    version: "v1.5.0"                        
+    controlPlaneEndpoint: ""   
+    clusterName: "butler-cluster"
+    cidr: ""
+    gateway: ""
+
+  # Kubernetes Cluster API Configuration
+  clusterAPI:
+    version: "v1.4.0"
+    provider: "cluster-api"
+    bootstrapProvider: "kubeadm"
+    controlPlaneProvider: "kubeadm"
