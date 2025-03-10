@@ -35,3 +35,9 @@ type ClusterConfig struct {
 	Nodes    []VMConfig
 	Provider string
 }
+
+// VMStatus represents the status of a VM in Nutanix.
+type VMStatus struct {
+	Healthy bool   `json:"healthy"`
+	IP      string `json:"ip"`
+}

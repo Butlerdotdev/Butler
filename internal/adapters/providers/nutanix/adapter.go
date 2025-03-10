@@ -19,8 +19,10 @@ package nutanix
 import (
 	"butler/internal/adapters/providers/nutanix/models"
 	sharedModels "butler/internal/models"
+	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 
 	"go.uber.org/zap"
 )
@@ -136,4 +138,73 @@ func (n *NutanixAdapter) DeleteVM(vmID string) error {
 
 	n.logger.Info("VM deleted successfully", zap.String("vmID", vmID))
 	return nil
+}
+
+// GetVMStatus fetches the VM's health status and IP address from Nutanix Prism Central.
+func (n *NutanixAdapter) GetVMStatus(vmName string) (sharedModels.VMStatus, error) {
+	n.logger.Info("Fetching VM status", zap.String("vm_name", vmName))
+
+	apiPath := "/api/nutanix/v3/vms/list"
+	requestPayload := map[string]interface{}{
+		"kind":   "vm",
+		"filter": fmt.Sprintf("vm_name==%s", vmName),
+	}
+
+	// Send request using DoRequest
+	resp, err := n.client.DoRequest("POST", apiPath, requestPayload)
+	if err != nil {
+		n.logger.Error("Failed to fetch VM status", zap.String("vm_name", vmName), zap.Error(err))
+		return sharedModels.VMStatus{}, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 300 {
+		return sharedModels.VMStatus{}, fmt.Errorf("nutanix API returned error: %d", resp.StatusCode)
+	}
+
+	// Read response
+	bodyBytes, _ := io.ReadAll(resp.Body)
+
+	// Parse JSON response using the NutanixVMStatus model
+	var responseData models.NutanixVMStatus
+	if err := json.Unmarshal(bodyBytes, &responseData); err != nil {
+		return sharedModels.VMStatus{}, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	// Check if VM was found
+	if len(responseData.Entities) == 0 {
+		return sharedModels.VMStatus{}, fmt.Errorf("VM %s not found in Nutanix", vmName)
+	}
+
+	vm := responseData.Entities[0]
+
+	// Extract power state & execution state
+	isPoweredOn := strings.EqualFold(vm.Status.Resources.PowerState, "ON")
+	isComplete := (vm.Status.State == "COMPLETE")
+
+	// Extract IP from nic_list > ip_endpoint_list
+	var assignedIP string
+	for _, nic := range vm.Status.Resources.NICs {
+		if len(nic.IpEndpointList) > 0 {
+			assignedIP = nic.IpEndpointList[0].IP
+			break // Stop at first found IP
+		}
+	}
+
+	// Determine overall health:
+	isHealthy := isPoweredOn && isComplete && assignedIP != ""
+
+	// Log extracted values
+	n.logger.Info("Fetched VM status successfully",
+		zap.String("vm_name", vmName),
+		zap.Bool("powered_on", isPoweredOn),
+		zap.String("state", vm.Status.State),
+		zap.Bool("healthy", isHealthy),
+		zap.String("ip", assignedIP),
+	)
+
+	return sharedModels.VMStatus{
+		Healthy: isHealthy,
+		IP:      assignedIP,
+	}, nil
 }

@@ -6,4 +6,5 @@ import "butler/internal/models"
 type ProviderInterface interface {
 	CreateVM(vm models.VMConfig) (string, error)
 	DeleteVM(vmID string) error
+	GetVMStatus(vmName string) (models.VMStatus, error)
 }
