@@ -39,7 +39,7 @@ func NewTalosClient(execAdapter exec.ExecAdapter) *TalosClient {
 
 func (c *TalosClient) GenerateConfig(ctx context.Context, config models.TalosConfig) error {
 	_, err := c.execAdapter.RunCommand(ctx, "talosctl", "gen", "config",
-		config.ClusterName, fmt.Sprintf("https://%s", config.ControlPlaneIP),
+		config.ClusterName, fmt.Sprintf("https://%s", config.ControlPlaneEndpoint),
 		"--output", config.OutputDir,
 		"--config-patch", `[{"op": "replace", "path": "/machine/time", "value": {"disabled": true}}]`,
 	)
