@@ -18,9 +18,10 @@ package models
 
 // TalosConfig holds cluster bootstrap information.
 type TalosConfig struct {
-	ClusterName       string   `json:"cluster_name"`
-	ControlPlaneIP    string   `json:"control_plane_ip"`
-	OutputDir         string   `json:"output_dir"`
-	ControlPlaneNodes []string `json:"control_plane_nodes"`
-	WorkerNodes       []string `json:"worker_nodes"`
+	ClusterName          string   `json:"cluster_name"`
+	ControlPlaneIP       string   `json:"control_plane_ip"`
+	ControlPlaneEndpoint string   `json:"controlPlaneEndpoint"`
+	OutputDir            string   `json:"output_dir"`
+	ControlPlaneNodes    []string `json:"control_plane_nodes"`
+	WorkerNodes          []string `json:"worker_nodes"`
 }

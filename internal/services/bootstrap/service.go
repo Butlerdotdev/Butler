@@ -84,11 +84,11 @@ func (b *BootstrapService) ProvisionManagementCluster(config *models.BootstrapCo
 
 	// Pass collected IPs to Talos
 	talosConfig := models.TalosConfig{
-		ClusterName:       config.ManagementCluster.Name,
-		ControlPlaneIP:    controlPlanes[0],
-		OutputDir:         "./talosconfig",
-		ControlPlaneNodes: controlPlanes,
-		WorkerNodes:       workers,
+		ClusterName:          config.ManagementCluster.Name,
+		ControlPlaneEndpoint: config.ManagementCluster.Talos.ControlPlaneEndpoint,
+		OutputDir:            "./talosconfig",
+		ControlPlaneNodes:    controlPlanes,
+		WorkerNodes:          workers,
 	}
 	insecure := true
 
