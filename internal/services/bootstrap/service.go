@@ -43,6 +43,7 @@ func NewBootstrapService(ctx context.Context, config *models.BootstrapConfig, lo
 		return nil, fmt.Errorf("failed to initialize provider: %w", err)
 	}
 
+	// Initialize Exec Adapter
 	execAdapter := exec.NewClient(logger)
 
 	// Initialize Talos adapter
