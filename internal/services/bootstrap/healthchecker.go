@@ -1,3 +1,19 @@
+// Package bootstrap provides services for provisioning the Butler management cluster.
+//
+// Copyright (c) 2025, The Butler Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package bootstrap
 
 import (
@@ -22,11 +38,12 @@ func NewHealthChecker(provider providers.ProviderInterface, logger *zap.Logger) 
 	}
 }
 
-// WaitForVMsToBeReady waits for all VMs to become healthy and have allocated IPs.
-func (h *HealthChecker) WaitForVMsToBeReady(config *models.BootstrapConfig, timeout time.Duration) error {
+// WaitForVMsToBeReady waits for all VMs to become healthy and collects their assigned IPs.
+func (h *HealthChecker) WaitForVMsToBeReady(config *models.BootstrapConfig, timeout time.Duration) (map[string]string, error) {
 	h.logger.Info("Waiting for VMs to report healthy and have allocated IPs")
 
 	deadline := time.Now().Add(timeout)
+	nodeIPs := make(map[string]string)
 
 	for _, node := range config.ManagementCluster.Nodes {
 		for i := 1; i <= node.Count; i++ {
@@ -42,6 +59,7 @@ func (h *HealthChecker) WaitForVMsToBeReady(config *models.BootstrapConfig, time
 
 				if status.Healthy && status.IP != "" {
 					h.logger.Info("VM is healthy and has an allocated IP", zap.String("vm_name", vmName), zap.String("ip", status.IP))
+					nodeIPs[vmName] = status.IP
 					break
 				}
 
@@ -49,14 +67,13 @@ func (h *HealthChecker) WaitForVMsToBeReady(config *models.BootstrapConfig, time
 				time.Sleep(10 * time.Second)
 			}
 
-			// If VM is still not ready after timeout, return error
-			status, err := h.provider.GetVMStatus(vmName)
-			if err != nil || !status.Healthy || status.IP == "" {
-				return fmt.Errorf("timeout: VM %s did not become healthy with an allocated IP", vmName)
+			// If VM is still not ready after timeout, return an error
+			if _, exists := nodeIPs[vmName]; !exists {
+				return nil, fmt.Errorf("timeout: VM %s did not become healthy with an allocated IP", vmName)
 			}
 		}
 	}
 
 	h.logger.Info("All VMs are healthy and have allocated IPs")
-	return nil
+	return nodeIPs, nil
 }

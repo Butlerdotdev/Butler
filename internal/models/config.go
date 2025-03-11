@@ -52,11 +52,15 @@ type NodeConfig struct {
 
 // TalosConfig holds Talos Linux bootstrapping details.
 type TalosConfig struct {
-	Version              string `yaml:"version"`
-	ControlPlaneEndpoint string `yaml:"controlPlaneEndpoint"`
-	ClusterName          string `yaml:"clusterName"`
-	CIDR                 string `yaml:"cidr"`
-	Gateway              string `yaml:"gateway"`
+	Version              string   `yaml:"version"`
+	ControlPlaneEndpoint string   `yaml:"controlPlaneEndpoint"`
+	ClusterName          string   `yaml:"clusterName"`
+	CIDR                 string   `yaml:"cidr"`
+	Gateway              string   `yaml:"gateway"`
+	ControlPlaneIP       string   `json:"control_plane_ip"`
+	OutputDir            string   `json:"output_dir"`
+	ControlPlaneNodes    []string `json:"control_plane_nodes"`
+	WorkerNodes          []string `json:"worker_nodes"`
 }
 
 // ClusterAPI represents the Cluster API provider settings.
