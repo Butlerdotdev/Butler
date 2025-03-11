@@ -52,12 +52,10 @@ func (t *TalosAdapter) ApplyConfig(ctx context.Context, node, configDir, role st
 		"worker":        "worker",
 	}
 
-	mappedRole, exists := roleMapping[role]
+	_, exists := roleMapping[role]
 	if !exists {
 		return fmt.Errorf("invalid role %s for Talos configuration", role)
 	}
-
-	fmt.Printf("[DEBUG] Applying Talos config: %s/%s.yaml -> Node: %s\n", configDir, mappedRole, node)
 
 	// Apply Talos configuration using the updated function
 	return t.client.ApplyConfig(ctx, node, configDir, role, insecure)
