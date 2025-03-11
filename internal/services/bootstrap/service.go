@@ -19,12 +19,14 @@ package bootstrap
 import (
 	"butler/internal/adapters/exec"
 	"butler/internal/adapters/platforms"
+	"butler/internal/adapters/platforms/docker"
 	"butler/internal/adapters/providers"
 	"butler/internal/models"
 	"context"
 	"fmt"
-	"go.uber.org/zap"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 // BootstrapService orchestrates provisioning the management cluster.
@@ -34,6 +36,7 @@ type BootstrapService struct {
 	provisioner *Provisioner
 	healthCheck *HealthChecker
 	talosInit   *TalosInitializer
+	kubeVipInit *KubeVipInitializer
 }
 
 // NewBootstrapService initializes a new BootstrapService with dependencies.
@@ -46,6 +49,9 @@ func NewBootstrapService(ctx context.Context, config *models.BootstrapConfig, lo
 	// Initialize Exec Adapter
 	execAdapter := exec.NewClient(logger)
 
+	// Initialize Docker Adapter
+	dockerAdapter := docker.NewDockerAdapter(execAdapter, logger)
+
 	// Initialize Talos adapter
 	talosAdapter, err := platforms.GetPlatformAdapter("talos", execAdapter)
 	if err != nil {
@@ -57,6 +63,7 @@ func NewBootstrapService(ctx context.Context, config *models.BootstrapConfig, lo
 		provisioner: NewProvisioner(provider, logger),
 		healthCheck: NewHealthChecker(provider, logger),
 		talosInit:   NewTalosInitializer(talosAdapter, logger),
+		kubeVipInit: NewKubeVipInitializer(*dockerAdapter, logger),
 	}, nil
 }
 
@@ -95,6 +102,12 @@ func (b *BootstrapService) ProvisionManagementCluster(config *models.BootstrapCo
 	err = b.talosInit.ConfigureTalos(context.Background(), &talosConfig, insecure)
 	if err != nil {
 		return fmt.Errorf("failed to configure Talos: %w", err)
+	}
+
+	// Deploy Kube-Vip
+	err = b.kubeVipInit.ConfigureKubeVip(context.Background(), config)
+	if err != nil {
+		return fmt.Errorf("failed to deploy Kube-Vip: %w", err)
 	}
 
 	b.logger.Info("Management cluster provisioned successfully with Talos!")
