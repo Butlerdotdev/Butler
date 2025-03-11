@@ -16,28 +16,8 @@
 
 package models
 
-// VMConfig represents a generic VM configuration that works across all providers.
-type VMConfig struct {
-	Name        string
-	Role        string
-	CPU         int
-	RAM         string
-	Disk        string
-	Count       int
-	IsoUUID     string
-	ClusterUUID string
-	SubnetUUID  string
-}
-
-// ClusterConfig represents a generic cluster configuration across providers.
-type ClusterConfig struct {
-	Name     string
-	Nodes    []VMConfig
-	Provider string
-}
-
-// VMStatus represents the status of a VM in Nutanix.
-type VMStatus struct {
-	Healthy bool   `json:"healthy"`
-	IP      string `json:"ip"`
+// PlatformStatus represents the health status of a platform.
+type PlatformStatus struct {
+	Healthy bool
+	Details map[string]string
 }

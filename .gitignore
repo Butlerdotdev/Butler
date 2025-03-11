@@ -1,6 +1,6 @@
 **/inventory
 **/secrets
-**/talosconfig
+**/talosconfig*
 
 # Created by https://www.toptal.com/developers/gitignore/api/terraform,terragrunt,go,intellij,intellij+all,intellij+iml,visualstudiocode,react
 # Edit at https://www.toptal.com/developers/gitignore?templates=terraform,terragrunt,go,intellij,intellij+all,intellij+iml,visualstudiocode,react
