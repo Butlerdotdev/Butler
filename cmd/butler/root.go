@@ -48,7 +48,9 @@ func Execute() {
 
 // RegisterCommands explicitly registers all subcommands
 func RegisterCommands() {
-	rootCmd.AddCommand(bootstrap.NewBootstrapCmd())
+	bootstrapCmd := bootstrap.NewBootstrapCmd()
+	bootstrapCmd.AddCommand(bootstrap.NewInteractiveCmd(rootCmd))
+	rootCmd.AddCommand(bootstrapCmd)
 	genCmd := generate.NewGenerateCmd()
 	genCmd.AddCommand(generate.NewDocsCmd(rootCmd))
 	rootCmd.AddCommand(genCmd)
