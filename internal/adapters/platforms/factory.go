@@ -17,15 +17,22 @@ package platforms
 
 import (
 	"butler/internal/adapters/exec"
+	"butler/internal/adapters/platforms/docker"
+	"butler/internal/adapters/platforms/kubectl"
 	"butler/internal/adapters/platforms/talos"
 	"fmt"
+	"go.uber.org/zap"
 )
 
 // GetPlatformAdapter returns the correct platform adapter.
-func GetPlatformAdapter(name string, execAdapter exec.ExecAdapter) (PlatformAdapter, error) {
+func GetPlatformAdapter(name string, execAdapter exec.ExecAdapter, logger *zap.Logger) (PlatformAdapter, error) {
 	switch name {
 	case "talos":
-		return talos.NewTalosAdapter(execAdapter), nil
+		return talos.NewTalosAdapter(execAdapter, logger), nil
+	case "kubectl":
+		return kubectl.NewKubectlAdapter(execAdapter, logger), nil
+	case "docker":
+		return docker.NewDockerAdapter(execAdapter, logger), nil
 	default:
 		return nil, fmt.Errorf("unsupported platform: %s", name)
 	}

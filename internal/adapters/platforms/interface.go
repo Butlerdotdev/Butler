@@ -17,15 +17,10 @@
 package platforms
 
 import (
-	"butler/internal/models"
 	"context"
 )
 
 // PlatformAdapter defines the interface for platform adapters.
 type PlatformAdapter interface {
-	Configure(ctx context.Context) error
-	GenerateConfig(ctx context.Context, config models.TalosConfig) error
-	ApplyConfig(ctx context.Context, node, configDir, role string, insecure bool) error
-	BootstrapControlPlane(ctx context.Context, node, configDir string) error
-	GetStatus(ctx context.Context) (models.PlatformStatus, error)
+	ExecuteCommand(ctx context.Context, args ...string) (string, error)
 }

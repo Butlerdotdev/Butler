@@ -1,9 +1,9 @@
-// Package docker defines an adapter for Docker.
+// Package kubectl defines an adapter for executing kubectl commands.
 //
 // Copyright (c) 2025, The Butler Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
+// You may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
 //     http://www.apache.org/licenses/LICENSE-2.0
@@ -14,32 +14,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package docker
+package kubectl
 
 import (
 	"butler/internal/adapters/exec"
 	"context"
 	"fmt"
+
 	"go.uber.org/zap"
 )
 
-// DockerClient runs Docker commands.
-type DockerClient struct {
+// KubectlClient executes kubectl commands.
+type KubectlClient struct {
 	execAdapter exec.ExecAdapter
 	logger      *zap.Logger
 }
 
-// NewDockerClient initializes the client.
-func NewDockerClient(execAdapter exec.ExecAdapter, logger *zap.Logger) *DockerClient {
-	return &DockerClient{
-		execAdapter: execAdapter,
-		logger:      logger,
-	}
+// NewKubectlClient initializes a new Kubectl client.
+func NewKubectlClient(execAdapter exec.ExecAdapter, logger *zap.Logger) *KubectlClient {
+	return &KubectlClient{execAdapter: execAdapter, logger: logger}
 }
 
 // ExecuteKubectlCommand runs a generic kubectl command with provided arguments.
-func (c *DockerClient) ExecuteCommand(ctx context.Context, args ...string) (string, error) {
-	result, err := c.execAdapter.RunCommand(ctx, "docker", args...)
+func (c *KubectlClient) ExecuteCommand(ctx context.Context, args ...string) (string, error) {
+	result, err := c.execAdapter.RunCommand(ctx, "kubectl", args...)
 	if err != nil {
 		return "", fmt.Errorf("kubectl command failed: %w", err)
 	}

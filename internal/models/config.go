@@ -54,6 +54,7 @@ type NodeConfig struct {
 type TalosConfig struct {
 	Version              string   `yaml:"version"`
 	ControlPlaneEndpoint string   `yaml:"controlPlaneEndpoint"`
+	ControlPlaneVIP      string   `yaml:"controlPlaneVIP"`
 	ClusterName          string   `yaml:"clusterName"`
 	CIDR                 string   `yaml:"cidr"`
 	Gateway              string   `yaml:"gateway"`
