@@ -17,60 +17,142 @@
 package bootstrap
 
 import (
-	"butler/internal/adapters/platforms"
+	"butler/internal/adapters/platforms/talos"
 	"butler/internal/models"
 	"context"
 	"fmt"
+	"time"
+
 	"go.uber.org/zap"
 )
 
 // TalosInitializer handles configuring Talos on provisioned VMs.
 type TalosInitializer struct {
-	talos  platforms.PlatformAdapter
-	logger *zap.Logger
+	talosAdapter *talos.TalosAdapter
+	logger       *zap.Logger
 }
 
 // NewTalosInitializer creates a new Talos initializer.
-func NewTalosInitializer(talos platforms.PlatformAdapter, logger *zap.Logger) *TalosInitializer {
-	return &TalosInitializer{talos: talos, logger: logger}
+func NewTalosInitializer(talosAdapter *talos.TalosAdapter, logger *zap.Logger) *TalosInitializer {
+	return &TalosInitializer{talosAdapter: talosAdapter, logger: logger}
 }
 
 // ConfigureTalos sets up Talos on the cluster nodes.
 func (t *TalosInitializer) ConfigureTalos(ctx context.Context, config *models.TalosConfig, insecure bool) error {
-	t.logger.Info("Generating Talos configuration")
+	t.logger.Info("Starting Talos setup", zap.String("cluster", config.ClusterName))
 
-	// Generate config
-	err := t.talos.GenerateConfig(ctx, *config)
-	if err != nil {
+	// Generate Talos Configuration
+	if err := t.GenerateConfig(ctx, config); err != nil {
 		return fmt.Errorf("failed to generate Talos config: %w", err)
 	}
 
-	// Apply Talos config to each control plane node
+	// Apply Config to Control Plane Nodes
 	for _, node := range config.ControlPlaneNodes {
-		t.logger.Info("Applying Talos config to control plane", zap.String("node", node))
-		err := t.talos.ApplyConfig(ctx, node, config.OutputDir, "control-plane", insecure)
-		if err != nil {
-			return fmt.Errorf("failed to apply Talos config to control plane: %w", err)
+		if err := t.ApplyConfig(ctx, node, config.OutputDir, "controlplane.yaml", insecure); err != nil {
+			return fmt.Errorf("failed to apply Talos config to control plane node %s: %w", node, err)
 		}
 	}
 
-	// Apply Talos config to each worker node
+	// Apply Config to Worker Nodes
 	for _, node := range config.WorkerNodes {
-		t.logger.Info("Applying Talos config to worker node", zap.String("node", node))
-		err := t.talos.ApplyConfig(ctx, node, config.OutputDir, "worker", insecure)
-		if err != nil {
-			return fmt.Errorf("failed to apply Talos config to worker: %w", err)
+		if err := t.ApplyConfig(ctx, node, config.OutputDir, "worker.yaml", insecure); err != nil {
+			return fmt.Errorf("failed to apply Talos config to worker node %s: %w", node, err)
 		}
 	}
 
-	// Bootstrap Talos on a control plane node (run once)
+	// Wait for Nodes to Register
+	t.WaitForNodesToRegister()
+
+	// Set Talos Endpoint
 	controlPlaneNode := config.ControlPlaneNodes[0]
-	t.logger.Info("Bootstrapping Talos on control plane", zap.String("node", controlPlaneNode))
-	err = t.talos.BootstrapControlPlane(ctx, controlPlaneNode, config.OutputDir)
-	if err != nil {
-		return fmt.Errorf("failed to bootstrap Talos: %w", err)
+	if err := t.SetEndpoint(ctx, controlPlaneNode); err != nil {
+		return fmt.Errorf("failed to configure Talos endpoint: %w", err)
+	}
+
+	// Bootstrap Talos on the First Control Plane Node
+	if err := t.BootstrapControlPlane(ctx, controlPlaneNode); err != nil {
+		return fmt.Errorf("failed to bootstrap Talos on control plane: %w", err)
+	}
+
+	// Retrieve KubeConfig
+	if err := t.RetrieveKubeConfig(ctx, controlPlaneNode); err != nil {
+		return fmt.Errorf("failed to retrieve kubeconfig: %w", err)
 	}
 
 	t.logger.Info("Talos setup complete")
 	return nil
+}
+
+// GenerateConfig generates Talos configuration files.
+func (t *TalosInitializer) GenerateConfig(ctx context.Context, config *models.TalosConfig) error {
+	t.logger.Info("Generating Talos configuration",
+		zap.String("cluster", config.ClusterName),
+		zap.String("endpoint", config.ControlPlaneEndpoint),
+	)
+
+	_, err := t.talosAdapter.ExecuteCommand(ctx,
+		"gen", "config", config.ClusterName, fmt.Sprintf("https://%s", config.ControlPlaneEndpoint),
+		"--output", config.OutputDir,
+		"--config-patch", `[{"op": "replace", "path": "/machine/time", "value": {"disabled": true}}]`,
+	)
+	return err
+}
+
+// ApplyConfig applies the Talos configuration to a node.
+func (t *TalosInitializer) ApplyConfig(ctx context.Context, node, configDir, configFile string, insecure bool) error {
+	t.logger.Info("Applying Talos config", zap.String("node", node), zap.String("file", configFile))
+
+	args := []string{
+		"apply-config",
+		"--nodes", node,
+		"--file", fmt.Sprintf("%s/%s", configDir, configFile),
+		"--talosconfig", "talosconfig/talosconfig",
+	}
+	if insecure {
+		args = append(args, "--insecure")
+	}
+
+	_, err := t.talosAdapter.ExecuteCommand(ctx, args...)
+	return err
+}
+
+// WaitForNodesToRegister adds a delay to allow nodes to register.
+func (t *TalosInitializer) WaitForNodesToRegister() {
+	waitTime := 180 * time.Second
+	t.logger.Info("Waiting for Talos nodes to register before bootstrapping", zap.Duration("waitTime", waitTime))
+	time.Sleep(waitTime)
+}
+
+// SetEndpoint configures the Talos endpoint.
+func (t *TalosInitializer) SetEndpoint(ctx context.Context, node string) error {
+	t.logger.Info("Configuring Talos endpoint", zap.String("node", node))
+
+	_, err := t.talosAdapter.ExecuteCommand(ctx,
+		"config", "endpoint", node, "--talosconfig", "talosconfig/talosconfig",
+	)
+	return err
+}
+
+// BootstrapControlPlane bootstraps Talos on a control-plane node.
+func (t *TalosInitializer) BootstrapControlPlane(ctx context.Context, node string) error {
+	t.logger.Info("Bootstrapping Talos control plane", zap.String("node", node))
+
+	_, err := t.talosAdapter.ExecuteCommand(ctx,
+		"bootstrap", "--nodes", node, "--talosconfig", "talosconfig/talosconfig",
+	)
+	return err
+}
+
+// RetrieveKubeConfig fetches and stores the Kubernetes kubeconfig.
+func (t *TalosInitializer) RetrieveKubeConfig(ctx context.Context, node string) error {
+	t.logger.Info("Retrieving kubeconfig from Talos", zap.String("node", node))
+
+	_, err := t.talosAdapter.ExecuteCommand(ctx,
+		"kubeconfig", "talosconfig/kubeconfig",
+		"--nodes", node,
+		"--talosconfig", "talosconfig/talosconfig",
+		"--force",
+		"--merge",
+	)
+	return err
 }

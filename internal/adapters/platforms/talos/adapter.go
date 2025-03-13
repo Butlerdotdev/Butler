@@ -18,55 +18,25 @@ package talos
 
 import (
 	"butler/internal/adapters/exec"
-	"butler/internal/models"
 	"context"
-	"fmt"
+	"go.uber.org/zap"
 )
 
-// TalosAdapter provides methods for managing Talos.
+// TalosAdapter provides methods for executing Talos commands.
 type TalosAdapter struct {
 	client *TalosClient
+	logger *zap.Logger
 }
 
 // NewTalosAdapter initializes a new Talos adapter.
-func NewTalosAdapter(execAdapter exec.ExecAdapter) *TalosAdapter {
-	return &TalosAdapter{client: NewTalosClient(execAdapter)}
-}
-
-// Configure is required to implement PlatformAdapter.
-func (t *TalosAdapter) Configure(ctx context.Context) error {
-	// This can be a placeholder if not needed yet.
-	return nil
-}
-
-// GenerateConfig delegates to TalosClient.
-func (t *TalosAdapter) GenerateConfig(ctx context.Context, config models.TalosConfig) error {
-	return t.client.GenerateConfig(ctx, config)
-}
-
-// ApplyConfig applies Talos configuration to a node.
-func (t *TalosAdapter) ApplyConfig(ctx context.Context, node, configDir, role string, insecure bool) error {
-	// Map "control-plane" to "controlplane" (Talos naming convention)
-	roleMapping := map[string]string{
-		"control-plane": "controlplane",
-		"worker":        "worker",
+func NewTalosAdapter(execAdapter exec.ExecAdapter, logger *zap.Logger) *TalosAdapter {
+	return &TalosAdapter{
+		client: NewTalosClient(execAdapter, logger),
+		logger: logger,
 	}
-
-	_, exists := roleMapping[role]
-	if !exists {
-		return fmt.Errorf("invalid role %s for Talos configuration", role)
-	}
-
-	// Apply Talos configuration using the updated function
-	return t.client.ApplyConfig(ctx, node, configDir, role, insecure)
 }
 
-// BootstrapControlPlane runs the Talos bootstrap process.
-func (t *TalosAdapter) BootstrapControlPlane(ctx context.Context, node, configDir string) error {
-	return t.client.BootstrapControlPlane(ctx, node, configDir)
-}
-
-// GetStatus fetches the Talos node status.
-func (t *TalosAdapter) GetStatus(ctx context.Context) (models.PlatformStatus, error) {
-	return t.client.GetStatus(ctx)
+// ExecuteKubectlCommand runs a generic kubectl command with provided arguments.
+func (t *TalosAdapter) ExecuteCommand(ctx context.Context, args ...string) (string, error) {
+	return t.client.ExecuteCommand(ctx, args...)
 }

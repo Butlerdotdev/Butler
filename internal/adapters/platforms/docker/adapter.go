@@ -36,24 +36,7 @@ func NewDockerAdapter(execAdapter exec.ExecAdapter, logger *zap.Logger) *DockerA
 	}
 }
 
-// GenerateKubeVipManifest generates the Kube-Vip manifest and saves it to a file.
-func (d *DockerAdapter) GenerateKubeVipManifest(ctx context.Context, version, interfaceName, vip string) error {
-	d.logger.Info("Generating Kube-Vip manifest",
-		zap.String("version", version),
-		zap.String("interface", interfaceName),
-		zap.String("vip", vip),
-	)
-	err := d.client.GenerateKubeVipManifest(ctx, version, interfaceName, vip)
-	if err != nil {
-		d.logger.Error("Failed to generate Kube-Vip manifest",
-			zap.Error(err),
-			zap.String("version", version),
-			zap.String("interface", interfaceName),
-			zap.String("vip", vip),
-		)
-		return err
-	}
-
-	d.logger.Info("Successfully generated Kube-Vip manifest")
-	return nil
+// ExecuteKubectlCommand runs a generic kubectl command with provided arguments.
+func (d *DockerAdapter) ExecuteCommand(ctx context.Context, args ...string) (string, error) {
+	return d.client.ExecuteCommand(ctx, args...)
 }

@@ -20,6 +20,8 @@ import (
 	"butler/internal/adapters/exec"
 	"butler/internal/adapters/platforms"
 	"butler/internal/adapters/platforms/docker"
+	"butler/internal/adapters/platforms/kubectl"
+	"butler/internal/adapters/platforms/talos"
 	"butler/internal/adapters/providers"
 	"butler/internal/models"
 	"context"
@@ -31,12 +33,14 @@ import (
 
 // BootstrapService orchestrates provisioning the management cluster.
 type BootstrapService struct {
-	logger      *zap.Logger
-	provider    providers.ProviderInterface
-	provisioner *Provisioner
-	healthCheck *HealthChecker
-	talosInit   *TalosInitializer
-	kubeVipInit *KubeVipInitializer
+	logger            *zap.Logger
+	provider          providers.ProviderInterface
+	provisioner       *Provisioner
+	healthCheck       *HealthChecker
+	talosInit         *TalosInitializer
+	kubeVipInit       *KubeVipInitializer
+	kubectl           *kubectl.KubectlAdapter
+	kubeConfigManager *KubeConfigManager
 }
 
 // NewBootstrapService initializes a new BootstrapService with dependencies.
@@ -53,17 +57,39 @@ func NewBootstrapService(ctx context.Context, config *models.BootstrapConfig, lo
 	dockerAdapter := docker.NewDockerAdapter(execAdapter, logger)
 
 	// Initialize Talos adapter
-	talosAdapter, err := platforms.GetPlatformAdapter("talos", execAdapter)
+	talosAdapter, err := platforms.GetPlatformAdapter("talos", execAdapter, logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize Talos adapter: %w", err)
 	}
+
+	// Type assertion to *talos.TalosAdapter
+	talosConcrete, ok := talosAdapter.(*talos.TalosAdapter)
+	if !ok {
+		return nil, fmt.Errorf("failed to assert TalosAdapter type")
+	}
+
+	kubectlAdapter, err := platforms.GetPlatformAdapter("kubectl", execAdapter, logger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize Kubectl adapter: %w", err)
+	}
+
+	kubectlConcrete, ok := kubectlAdapter.(*kubectl.KubectlAdapter)
+	if !ok {
+		return nil, fmt.Errorf("failed to assert KubectlAdapter type")
+	}
+
+	// Pass the interface
+	kubeConfigManager := NewKubeConfigManager(logger, kubectlAdapter)
+
 	return &BootstrapService{
-		logger:      logger,
-		provider:    provider,
-		provisioner: NewProvisioner(provider, logger),
-		healthCheck: NewHealthChecker(provider, logger),
-		talosInit:   NewTalosInitializer(talosAdapter, logger),
-		kubeVipInit: NewKubeVipInitializer(*dockerAdapter, logger),
+		logger:            logger,
+		provider:          provider,
+		provisioner:       NewProvisioner(provider, logger),
+		healthCheck:       NewHealthChecker(provider, logger),
+		talosInit:         NewTalosInitializer(talosConcrete, logger),
+		kubeVipInit:       NewKubeVipInitializer(dockerAdapter, kubectlConcrete, logger),
+		kubectl:           kubectlConcrete,
+		kubeConfigManager: kubeConfigManager,
 	}, nil
 }
 
@@ -77,19 +103,19 @@ func (b *BootstrapService) ProvisionManagementCluster(config *models.BootstrapCo
 		return err
 	}
 
-	// Wait for health checks and collect IPs
+	// Wait for health checks & collect IPs
 	nodeIPs, err := b.healthCheck.WaitForVMsToBeReady(config, 10*time.Minute)
 	if err != nil {
 		return err
 	}
 
-	// Separate Control Plane and Worker Nodes
+	// Separate Control Plane & Worker Nodes
 	controlPlanes, workers, err := b.provisioner.SeparateNodesByRole(config, nodeIPs)
 	if err != nil {
 		return err
 	}
 
-	// Pass collected IPs to Talos
+	// Generate & Apply Talos Configuration
 	talosConfig := models.TalosConfig{
 		ClusterName:          config.ManagementCluster.Name,
 		ControlPlaneEndpoint: config.ManagementCluster.Talos.ControlPlaneEndpoint,
@@ -104,10 +130,42 @@ func (b *BootstrapService) ProvisionManagementCluster(config *models.BootstrapCo
 		return fmt.Errorf("failed to configure Talos: %w", err)
 	}
 
-	// Deploy Kube-Vip
-	err = b.kubeVipInit.ConfigureKubeVip(context.Background(), config)
+	// Ensure At Least One Control Plane Node Exists
+	if len(controlPlanes) == 0 {
+		return fmt.Errorf("no available control plane nodes for Kube-Vip setup")
+	}
+	server := fmt.Sprintf("https://%s:6443", controlPlanes[0])
+
+	// Validate KubeConfig Before Proceeding
+	kubeconfigPath := "talosconfig/kubeconfig"
+	err = b.kubeConfigManager.ValidateKubeConfig(kubeconfigPath)
 	if err != nil {
-		return fmt.Errorf("failed to deploy Kube-Vip: %w", err)
+		return fmt.Errorf("kubeconfig validation failed: %w", err)
+	}
+
+	// Ensure kubeconfig context is correct
+	err = b.kubeConfigManager.EnsureCorrectContext(kubeconfigPath)
+	if err != nil {
+		return fmt.Errorf("failed to ensure correct kubeconfig context: %w", err)
+	}
+
+	// Ensure Kubernetes API is Ready Before Applying Kube-Vip
+	err = b.kubeConfigManager.WaitForKubernetesAPI(kubeconfigPath, controlPlanes[0], 5*time.Minute)
+	if err != nil {
+		return fmt.Errorf("kubernetes API did not become available: %w", err)
+	}
+
+	// Apply Kube-Vip RBAC
+	rbacManifestURL := "https://kube-vip.io/manifests/rbac.yaml"
+	b.logger.Info("Applying Kube-Vip RBAC configuration",
+		zap.String("server", server),
+		zap.String("manifest", rbacManifestURL),
+	)
+
+	// Deploy Kube-Vip DaemonSet
+	err = b.kubeVipInit.ConfigureKubeVip(context.Background(), config, server)
+	if err != nil {
+		return fmt.Errorf("failed to configure Kube-Vip: %w", err)
 	}
 
 	b.logger.Info("Management cluster provisioned successfully with Talos!")
