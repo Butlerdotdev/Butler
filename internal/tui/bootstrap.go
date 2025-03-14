@@ -45,11 +45,16 @@ func nutanixLogin(m model) string {
 		%s
 		%s
 
+		%s
+		%s
+
 	`,
-		commandStyle.Width(64).Render("Username"),
+		commandStyle.Width(64).Render("Endpoint"),
 		m.inputs[0].View(),
-		commandStyle.Width(64).Render("Password"),
+		commandStyle.Width(64).Render("Username"),
 		m.inputs[1].View(),
+		commandStyle.Width(64).Render("Password"),
+		m.inputs[2].View(),
 	) + "\n"
 
 	maxWidth := 64 // Set max text width (excluding emoji)
