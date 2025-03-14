@@ -18,9 +18,11 @@ package platforms
 import (
 	"butler/internal/adapters/exec"
 	"butler/internal/adapters/platforms/docker"
+	"butler/internal/adapters/platforms/flux"
 	"butler/internal/adapters/platforms/kubectl"
 	"butler/internal/adapters/platforms/talos"
 	"fmt"
+
 	"go.uber.org/zap"
 )
 
@@ -33,6 +35,8 @@ func GetPlatformAdapter(name string, execAdapter exec.ExecAdapter, logger *zap.L
 		return kubectl.NewKubectlAdapter(execAdapter, logger), nil
 	case "docker":
 		return docker.NewDockerAdapter(execAdapter, logger), nil
+	case "flux":
+		return flux.NewFluxAdapter(execAdapter, logger), nil
 	default:
 		return nil, fmt.Errorf("unsupported platform: %s", name)
 	}
