@@ -208,3 +208,32 @@ func (n *NutanixAdapter) GetVMStatus(vmName string) (sharedModels.VMStatus, erro
 		IP:      assignedIP,
 	}, nil
 }
+
+func (n *NutanixAdapter) GetClusterUuids() ([]string, error) {
+	requestPayload := map[string]interface{}{
+		"kind":   "cluster",
+		"length": 1,
+		"offset": 0,
+	}
+	resp, err := n.client.DoRequest("POST", "/api/nutanix/v3/clusters/list", requestPayload)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("failed to fetch clusters: %d", resp.StatusCode)
+	}
+
+	var clusters models.NutanixClusterList
+	if err := json.NewDecoder(resp.Body).Decode(&clusters); err != nil {
+		return nil, err
+	}
+
+	clusterUUIDs := make([]string, 0, len(clusters.Entities))
+	for _, cluster := range clusters.Entities {
+		clusterUUIDs = append(clusterUUIDs, cluster.Metadata.UUID)
+	}
+
+	return clusterUUIDs, nil
+}

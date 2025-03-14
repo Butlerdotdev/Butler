@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"butler/internal/adapters/providers/nutanix"
 	"bytes"
 	"fmt"
 	"os"
@@ -30,6 +31,8 @@ type commandCompleteMsg struct {
 	err    error
 	output string
 }
+
+var logger *zap.Logger
 
 // UI Styles
 var (
@@ -145,7 +148,7 @@ func initialModel(rootCmd *cobra.Command) model {
 	availableCommands := []string{}
 	availableCommands = append(availableCommands, "📟   Continue")
 	availableCommands = append(availableCommands, "🚪   Exit")
-	inputs := make([]textinput.Model, 2)
+	inputs := make([]textinput.Model, 3)
 
 	var t textinput.Model
 	for i := range inputs {
@@ -156,9 +159,10 @@ func initialModel(rootCmd *cobra.Command) model {
 
 		switch i {
 		case 0:
-			t.Placeholder = "Username"
-			t.Focus()
+			t.Placeholder = "https://nutanix.example.com"
 		case 1:
+			t.Placeholder = "Username"
+		case 2:
 			t.Placeholder = "Password"
 			t.EchoMode = textinput.EchoPassword
 			t.EchoCharacter = '•'
@@ -212,7 +216,8 @@ func tick() tea.Cmd {
 }
 
 // StartTUI
-func StartTUI(rootCmd *cobra.Command, logger *zap.Logger) {
+func StartTUI(rootCmd *cobra.Command, log *zap.Logger) {
+	logger = log
 	p := tea.NewProgram(initialModel(rootCmd), tea.WithAltScreen())
 	if err := p.Start(); err != nil {
 		logger.Fatal("Failed to start TUI", zap.Error(err))
@@ -242,7 +247,6 @@ func (m model) View() string {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case commandCompleteMsg:
-		m.currentView = "main"
 		if msg.err != nil {
 			m.message = fmt.Sprintf("❌ Error: %s", msg.err)
 		} else {
@@ -251,9 +255,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tickMsg:
-		// Execute commands based on selected option
-		if m.currentView == "processing_docs" {
-			return m, runCobraCommand(m.rootCmd, "generate", "docs")
+		if m.currentView == "nutanix_login" {
+			nutanixClient := nutanix.NewNutanixClient(nil, m.inputs[0].Value(), m.inputs[1].Value(), m.inputs[2].Value(), logger)
+			nutanixAdapter := nutanix.NewNutanixAdapter(nutanixClient, logger)
+			uuids, err := nutanixAdapter.GetClusterUuids()
+			return m, func() tea.Msg { return commandCompleteMsg{err: err, output: fmt.Sprintf("%v", uuids)} }
 		}
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -275,15 +281,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.currentView = "nutanix_login"
 					m.options = []string{"📟   Next"}
 					m.cursor = 0
-					m.inputsCount = 2
+					m.inputsCount = 3
 					m.inputs[m.cursor].Focus()
 				case "🚪   Exit":
 					return m, tea.Quit
 				}
 			case "nutanix_login":
 				if m.cursor >= len(m.inputs) {
-					m.currentView = "processing_docs"
-					m.options = []string{"🔄   Processing..."}
+					m.options = append(m.options, "🔄   Processing...")
 					m.cursor = 0
 					m.inputsCount = 0
 					return m, tick()
@@ -304,6 +309,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var cmd tea.Cmd
 		m.inputs[0], cmd = m.inputs[0].Update(msg)
 		m.inputs[1], cmd = m.inputs[1].Update(msg)
+		m.inputs[2], cmd = m.inputs[2].Update(msg)
 		return m, cmd
 	}
 

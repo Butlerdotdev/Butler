@@ -131,3 +131,15 @@ type ClusterReference struct {
 	Kind string `json:"kind"`
 	UUID string `json:"uuid"`
 }
+
+type NutanixClusterList struct {
+	Entities []NutanixClusterEntities `json:"entities"`
+}
+
+type NutanixClusterEntities struct {
+	Metadata NutanixClusterMetadata `json:"metadata"`
+}
+
+type NutanixClusterMetadata struct {
+	UUID string `json:"uuid"`
+}
