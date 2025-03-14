@@ -20,6 +20,7 @@ import (
 	"butler/internal/adapters/exec"
 	"butler/internal/adapters/platforms"
 	"butler/internal/adapters/platforms/docker"
+	"butler/internal/adapters/platforms/flux"
 	"butler/internal/adapters/platforms/kubectl"
 	"butler/internal/adapters/platforms/talos"
 	"butler/internal/adapters/providers"
@@ -39,6 +40,7 @@ type BootstrapService struct {
 	healthCheck       *HealthChecker
 	talosInit         *TalosInitializer
 	kubeVipInit       *KubeVipInitializer
+	fluxInit          *FluxInitializer
 	kubectl           *kubectl.KubectlAdapter
 	kubeConfigManager *KubeConfigManager
 }
@@ -85,6 +87,16 @@ func NewBootstrapService(ctx context.Context, config *models.BootstrapConfig, lo
 		return nil, fmt.Errorf("failed to assert KubectlAdapter type")
 	}
 
+	// Initialize Flux Adapter
+	fluxAdapter, err := platforms.GetPlatformAdapter("flux", execAdapter, logger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize Flux adapter: %w", err)
+	}
+	fluxConcrete, ok := fluxAdapter.(*flux.FluxAdapter)
+	if !ok {
+		return nil, fmt.Errorf("failed to assert FluxAdapter type")
+	}
+
 	// Pass the interface
 	kubeConfigManager := NewKubeConfigManager(logger, kubectlAdapter)
 
@@ -95,6 +107,7 @@ func NewBootstrapService(ctx context.Context, config *models.BootstrapConfig, lo
 		healthCheck:       NewHealthChecker(provider, logger),
 		talosInit:         NewTalosInitializer(talosConcrete, logger),
 		kubeVipInit:       NewKubeVipInitializer(dockerConcrete, kubectlConcrete, logger),
+		fluxInit:          NewFluxInitializer(fluxConcrete, logger),
 		kubectl:           kubectlConcrete,
 		kubeConfigManager: kubeConfigManager,
 	}, nil
@@ -175,6 +188,15 @@ func (b *BootstrapService) ProvisionManagementCluster(config *models.BootstrapCo
 		return fmt.Errorf("failed to configure Kube-Vip: %w", err)
 	}
 
-	b.logger.Info("Management cluster provisioned successfully with Talos!")
+	time.Sleep(180 * time.Second)
+	err = b.fluxInit.FluxBootstrap(context.Background(), config)
+	if err != nil {
+		return fmt.Errorf("failed to bootstrap Flux: %w", err)
+	}
+
+	b.logger.Info("Flux bootstrap completed successfully")
+
+	b.logger.Info("Management cluster provisioned successfully")
 	return nil
+
 }
