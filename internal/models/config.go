@@ -29,6 +29,16 @@ type ManagementClusterConfig struct {
 	Nodes      []NodeConfig  `yaml:"nodes"`
 	Talos      TalosConfig   `yaml:"talos"`
 	ClusterAPI ClusterAPI    `yaml:"clusterAPI"`
+	Flux       FluxConfig    `yaml:"flux"`
+}
+
+type FluxConfig struct {
+	GitOwner      string `yaml:"gitOwner"`
+	GitRepository string `yaml:"gitRepository"`
+	GitBranch     string `yaml:"gitBranch"`
+	GitPath       string `yaml:"gitPath"`
+	GitHostname   string `yaml:"gitHostname"`
+	GitPAT        string `yaml:"gitPAT"`
 }
 
 // NutanixConfig defines the Nutanix API connection and cluster details.
