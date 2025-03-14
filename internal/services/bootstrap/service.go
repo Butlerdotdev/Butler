@@ -54,7 +54,14 @@ func NewBootstrapService(ctx context.Context, config *models.BootstrapConfig, lo
 	execAdapter := exec.NewClient(logger)
 
 	// Initialize Docker Adapter
-	dockerAdapter := docker.NewDockerAdapter(execAdapter, logger)
+	dockerAdapter, err := platforms.GetPlatformAdapter("docker", execAdapter, logger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize Docker adapter: %w", err)
+	}
+	dockerConcrete, ok := dockerAdapter.(*docker.DockerAdapter)
+	if !ok {
+		return nil, fmt.Errorf("failed to assert DockerAdapter type")
+	}
 
 	// Initialize Talos adapter
 	talosAdapter, err := platforms.GetPlatformAdapter("talos", execAdapter, logger)
@@ -87,7 +94,7 @@ func NewBootstrapService(ctx context.Context, config *models.BootstrapConfig, lo
 		provisioner:       NewProvisioner(provider, logger),
 		healthCheck:       NewHealthChecker(provider, logger),
 		talosInit:         NewTalosInitializer(talosConcrete, logger),
-		kubeVipInit:       NewKubeVipInitializer(dockerAdapter, kubectlConcrete, logger),
+		kubeVipInit:       NewKubeVipInitializer(dockerConcrete, kubectlConcrete, logger),
 		kubectl:           kubectlConcrete,
 		kubeConfigManager: kubeConfigManager,
 	}, nil
@@ -144,7 +151,7 @@ func (b *BootstrapService) ProvisionManagementCluster(config *models.BootstrapCo
 	}
 
 	// Ensure kubeconfig context is correct
-	err = b.kubeConfigManager.EnsureCorrectContext(kubeconfigPath)
+	err = b.kubeConfigManager.EnsureCorrectContext(kubeconfigPath, config.ManagementCluster.Name)
 	if err != nil {
 		return fmt.Errorf("failed to ensure correct kubeconfig context: %w", err)
 	}

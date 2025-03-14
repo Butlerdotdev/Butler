@@ -104,8 +104,10 @@ func (k *KubeConfigManager) WaitForKubernetesAPI(kubeconfigPath, controlPlaneNod
 }
 
 // EnsureCorrectContext ensures the kubeconfig context is set correctly.
-func (k *KubeConfigManager) EnsureCorrectContext(kubeconfigPath string) error {
+func (k *KubeConfigManager) EnsureCorrectContext(kubeconfigPath string, clusterName string) error {
 	k.logger.Info("Ensuring kubeconfig context is set", zap.String("path", kubeconfigPath))
+
+	contextName := fmt.Sprintf("admin@%s", clusterName)
 
 	// Force reload of the kubeconfig by unsetting current context
 	_, err := k.platformAdapter.ExecuteCommand(context.Background(), "--kubeconfig", kubeconfigPath, "config", "unset", "current-context")
@@ -114,7 +116,7 @@ func (k *KubeConfigManager) EnsureCorrectContext(kubeconfigPath string) error {
 	}
 
 	// Switch to the correct context
-	_, err = k.platformAdapter.ExecuteCommand(context.Background(), "--kubeconfig", kubeconfigPath, "config", "use-context", "admin@butler-r")
+	_, err = k.platformAdapter.ExecuteCommand(context.Background(), "--kubeconfig", kubeconfigPath, "config", "use-context", contextName)
 	if err != nil {
 		return fmt.Errorf("failed to switch kubeconfig context: %w", err)
 	}
