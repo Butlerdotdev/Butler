@@ -4,8 +4,6 @@ import (
 	"butler/internal/adapters/providers/nutanix"
 	"bytes"
 	"fmt"
-	"os"
-	"os/exec"
 	"strings"
 	"time"
 
@@ -233,10 +231,8 @@ func StartTUI(rootCmd *cobra.Command, log *zap.Logger) {
 
 	finalModel := p.(model)
 	if finalModel.inputs[5].Value() == "true" {
-		cmd := exec.Command("butler", "bootstrap", "--help")
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		cmd.Run()
+		fmt.Println("Placeholder for running bootstrapping process...")
+		// TODO: Run bootstrapping process
 	}
 }
 
