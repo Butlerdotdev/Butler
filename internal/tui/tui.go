@@ -2,7 +2,6 @@ package tui
 
 import (
 	"butler/internal/adapters/providers/nutanix"
-	"bytes"
 	"fmt"
 	"strings"
 	"time"
@@ -189,29 +188,6 @@ func initialModel(rootCmd *cobra.Command) model {
 // Init initializes the TUI program
 func (m model) Init() tea.Cmd {
 	return textinput.Blink
-}
-
-// Exit tea and run cobra command
-func runCobraCommand(rootCmd *cobra.Command, args ...string) tea.Cmd {
-	return func() tea.Msg {
-		var stdout, stderr bytes.Buffer
-
-		cmd, _, err := rootCmd.Find(args)
-		if err != nil {
-			return commandCompleteMsg{err: fmt.Errorf("command not found: %s", args)}
-		}
-
-		cmd.SetOut(&stdout)
-		cmd.SetErr(&stderr)
-		rootCmd.SetArgs(args)
-
-		time.Sleep(2 * time.Second)
-		_, err = cmd.ExecuteC()
-		output := stdout.String()
-
-		_ = stderr.String()
-		return commandCompleteMsg{err: err, output: output}
-	}
 }
 
 // Tick function
