@@ -209,7 +209,7 @@ func (n *NutanixAdapter) GetVMStatus(vmName string) (sharedModels.VMStatus, erro
 	}, nil
 }
 
-func (n *NutanixAdapter) GetClusterUuids() ([]string, error) {
+func (n *NutanixAdapter) GetClusterUuids() ([]models.NutanixClusterEntities, error) {
 	requestPayload := map[string]interface{}{
 		"kind":   "cluster",
 		"length": 1,
@@ -217,23 +217,42 @@ func (n *NutanixAdapter) GetClusterUuids() ([]string, error) {
 	}
 	resp, err := n.client.DoRequest("POST", "/api/nutanix/v3/clusters/list", requestPayload)
 	if err != nil {
-		return nil, err
+		return []models.NutanixClusterEntities{}, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("failed to fetch clusters: %d", resp.StatusCode)
+		return []models.NutanixClusterEntities{}, fmt.Errorf("failed to fetch clusters: %d", resp.StatusCode)
 	}
 
 	var clusters models.NutanixClusterList
 	if err := json.NewDecoder(resp.Body).Decode(&clusters); err != nil {
-		return nil, err
+		return []models.NutanixClusterEntities{}, err
 	}
 
-	clusterUUIDs := make([]string, 0, len(clusters.Entities))
-	for _, cluster := range clusters.Entities {
-		clusterUUIDs = append(clusterUUIDs, cluster.Metadata.UUID)
+	return clusters.Entities, nil
+}
+
+func (n *NutanixAdapter) GetSubnetUuids(clusterUUID string) ([]models.NutanixSubnetEntities, error) {
+	requestPayload := map[string]interface{}{
+		"kind":   "subnet",
+		"length": 1,
+		"offset": 0,
+	}
+	resp, err := n.client.DoRequest("POST", "/api/nutanix/v3/subnets/list", requestPayload)
+	if err != nil {
+		return []models.NutanixSubnetEntities{}, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 300 {
+		return []models.NutanixSubnetEntities{}, fmt.Errorf("failed to fetch subnets: %d", resp.StatusCode)
 	}
 
-	return clusterUUIDs, nil
+	var subnets models.NutanixSubnetList
+	if err := json.NewDecoder(resp.Body).Decode(&subnets); err != nil {
+		return []models.NutanixSubnetEntities{}, err
+	}
+
+	return subnets.Entities, nil
 }

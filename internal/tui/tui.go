@@ -5,6 +5,8 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/charmbracelet/bubbles/textinput"
@@ -148,7 +150,7 @@ func initialModel(rootCmd *cobra.Command) model {
 	availableCommands := []string{}
 	availableCommands = append(availableCommands, "📟   Continue")
 	availableCommands = append(availableCommands, "🚪   Exit")
-	inputs := make([]textinput.Model, 3)
+	inputs := make([]textinput.Model, 6)
 
 	var t textinput.Model
 	for i := range inputs {
@@ -166,6 +168,12 @@ func initialModel(rootCmd *cobra.Command) model {
 			t.Placeholder = "Password"
 			t.EchoMode = textinput.EchoPassword
 			t.EchoCharacter = '•'
+		case 3:
+			t.Placeholder = "Cluster UUID"
+		case 4:
+			t.Placeholder = "Subnet UUID"
+		case 5:
+			t.Placeholder = "false"
 		}
 
 		inputs[i] = t
@@ -185,7 +193,7 @@ func (m model) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-// Run Cobra Command
+// Exit tea and run cobra command
 func runCobraCommand(rootCmd *cobra.Command, args ...string) tea.Cmd {
 	return func() tea.Msg {
 		var stdout, stderr bytes.Buffer
@@ -218,10 +226,17 @@ func tick() tea.Cmd {
 // StartTUI
 func StartTUI(rootCmd *cobra.Command, log *zap.Logger) {
 	logger = log
-	p := tea.NewProgram(initialModel(rootCmd), tea.WithAltScreen())
-	if err := p.Start(); err != nil {
-		logger.Fatal("Failed to start TUI", zap.Error(err))
-		os.Exit(1)
+	p, err := tea.NewProgram(initialModel(rootCmd), tea.WithAltScreen()).Run()
+	if err != nil {
+		logger.Fatal("Failed to run TUI", zap.Error(err))
+	}
+
+	finalModel := p.(model)
+	if finalModel.inputs[5].Value() == "true" {
+		cmd := exec.Command("butler", "bootstrap", "--help")
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		cmd.Run()
 	}
 }
 
@@ -233,9 +248,15 @@ func (m model) View() string {
 	var body string
 	switch m.currentView {
 	case "main":
-		body = renderMenu(m.options, m.cursor)
+		body = landingView(m)
 	case "nutanix_login":
-		body = nutanixLogin(m)
+		body = nutanixLoginView(m)
+	case "cluster_select":
+		body = nutanixClusterSelectView(m)
+	case "subnet_select":
+		body = nutanixSubnetSelectView(m)
+	case "bootstrap_gate":
+		body = bootstrapGateView(m)
 	}
 
 	return outerBorderStyle.Render(
@@ -255,11 +276,43 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tickMsg:
-		if m.currentView == "nutanix_login" {
+		switch m.currentView {
+		case "nutanix_login":
+			// Query cluster uuids and display for selection
 			nutanixClient := nutanix.NewNutanixClient(nil, m.inputs[0].Value(), m.inputs[1].Value(), m.inputs[2].Value(), logger)
 			nutanixAdapter := nutanix.NewNutanixAdapter(nutanixClient, logger)
 			uuids, err := nutanixAdapter.GetClusterUuids()
-			return m, func() tea.Msg { return commandCompleteMsg{err: err, output: fmt.Sprintf("%v", uuids)} }
+			if err != nil {
+				return m, func() tea.Msg { return commandCompleteMsg{err: err} }
+			}
+			m.options = []string{}
+			m.inputsCount = 0
+			m.cursor = 0
+			for i := range m.inputs {
+				m.inputs[i].Blur()
+			}
+			for _, cluster := range uuids {
+				m.options = append(m.options, fmt.Sprintf("%s\t- %s", cluster.Spec.Name, cluster.Metadata.UUID))
+			}
+			m.currentView = "cluster_select"
+		case "cluster_select":
+			// query subnet uuids and display for selection
+			nutanixClient := nutanix.NewNutanixClient(nil, m.inputs[0].Value(), m.inputs[1].Value(), m.inputs[2].Value(), logger)
+			nutanixAdapter := nutanix.NewNutanixAdapter(nutanixClient, logger)
+			uuids, err := nutanixAdapter.GetSubnetUuids(m.inputs[3].Value())
+			if err != nil {
+				return m, func() tea.Msg { return commandCompleteMsg{err: err} }
+			}
+			m.options = []string{}
+			m.inputsCount = 0
+			m.cursor = 0
+			for i := range m.inputs {
+				m.inputs[i].Blur()
+			}
+			for _, subnet := range uuids {
+				m.options = append(m.options, fmt.Sprintf("%s\t- %s", subnet.Spec.Name, subnet.Metadata.UUID))
+			}
+			m.currentView = "subnet_select"
 		}
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -287,11 +340,33 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, tea.Quit
 				}
 			case "nutanix_login":
-				if m.cursor >= len(m.inputs) {
+				if m.cursor >= m.inputsCount {
 					m.options = append(m.options, "🔄   Processing...")
 					m.cursor = 0
 					m.inputsCount = 0
 					return m, tick()
+				}
+			case "cluster_select":
+				m.inputs[3].SetValue(strings.Split(m.options[m.cursor], "- ")[1])
+				m.options = append(m.options, "🔄   Processing...")
+				m.cursor = 0
+				m.inputsCount = 0
+				return m, tick()
+			case "subnet_select":
+				m.inputs[4].SetValue(strings.Split(m.options[m.cursor], "- ")[1])
+				m.options = []string{}
+				m.options = append(m.options, "✅ Continue")
+				m.options = append(m.options, "🚪 Exit")
+				m.cursor = 0
+				m.inputsCount = 0
+				m.currentView = "bootstrap_gate"
+			case "bootstrap_gate":
+				switch m.options[m.cursor] {
+				case "✅ Continue":
+					m.inputs[5].SetValue("true")
+					return m, tea.Quit
+				case "🚪 Exit":
+					return m, tea.Quit
 				}
 			}
 		}

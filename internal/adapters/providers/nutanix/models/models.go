@@ -138,9 +138,37 @@ type NutanixClusterList struct {
 
 type NutanixClusterEntities struct {
 	Metadata NutanixClusterMetadata `json:"metadata"`
+	Spec     NutanixClusterSpec     `json:"spec"`
+}
+
+type NutanixClusterSpec struct {
+	Name string `json:"name"`
 }
 
 type NutanixClusterMetadata struct {
+	UUID string `json:"uuid"`
+	Name string `json:"name"`
+}
+
+type NutanixSubnetList struct {
+	Entities []NutanixSubnetEntities `json:"entities"`
+}
+
+type NutanixSubnetEntities struct {
+	Metadata NutanixSubnetMetadata `json:"metadata"`
+	Spec     NutanixSubnetSpec     `json:"spec"`
+}
+
+type NutanixSubnetSpec struct {
+	Name             string                  `json:"name"`
+	ClusterReference NutanixClusterReference `json:"cluster_reference"`
+}
+
+type NutanixClusterReference struct {
+	UUID string `json:"uuid"`
+}
+
+type NutanixSubnetMetadata struct {
 	UUID string `json:"uuid"`
 	Name string `json:"name"`
 }
