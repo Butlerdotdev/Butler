@@ -1,0 +1,57 @@
+name: "Bug Report"
+description: "Report a bug or unexpected behavior in Butler."
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug! Please provide as much detail as possible.
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: "What environment is Butler running in? (e.g., OS, Kubernetes version)"
+      placeholder: "Kubernetes 1.26, Butler v1.0.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: "Describe the issue, including expected vs actual behavior."
+      placeholder: "A bug happened! I expected..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: "List the steps needed to reproduce the issue."
+      placeholder: |
+        1. Run `butler bootstrap --config=myconfig.yaml`
+        2. Check logs
+        3. Error occurs
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs & Screenshots
+      description: "Attach relevant log output or screenshots (if applicable)."
+      render: shell
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: "Acknowledgement"
+      description: "Please confirm that you have read and provided all necessary details."
+      options:
+        - label: "I have searched for duplicate issues."
+          required: true
+        - label: "I have attached logs and reproduction steps."
+          required: true
