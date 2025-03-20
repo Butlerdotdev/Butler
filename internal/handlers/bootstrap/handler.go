@@ -22,6 +22,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
@@ -40,10 +41,15 @@ func NewBootstrapHandler(ctx context.Context, logger *zap.Logger) *BootstrapHand
 }
 
 // HandleProvisionCluster validates input and calls the bootstrap service.
-func (h *BootstrapHandler) HandleProvisionCluster(config *models.BootstrapConfig) error {
+func (h *BootstrapHandler) HandleProvisionCluster() error {
 	h.logger.Info("Handling cluster provisioning request...")
 
-	// validate Required Fields
+	var config models.BootstrapConfig
+	if err := viper.Unmarshal(&config); err != nil {
+		h.logger.Error("Failed to unmarshal config", zap.Error(err))
+		return fmt.Errorf("failed to unmarshal config: %w", err)
+	}
+	// Validate Required Fields
 	if config.ManagementCluster.Name == "" {
 		return fmt.Errorf("cluster name is required")
 	}
@@ -55,14 +61,14 @@ func (h *BootstrapHandler) HandleProvisionCluster(config *models.BootstrapConfig
 	}
 
 	// Call the Service
-	bootstrapService, err := service.NewBootstrapService(h.ctx, config, h.logger)
+	bootstrapService, err := service.NewBootstrapService(h.ctx, &config, h.logger)
 	if err != nil {
 		h.logger.Error("Failed to initialize bootstrap service", zap.Error(err))
 		return err
 	}
 
 	// Proceed with provisioning
-	err = bootstrapService.ProvisionManagementCluster(config)
+	err = bootstrapService.ProvisionManagementCluster(&config)
 	if err != nil {
 		h.logger.Error("Cluster provisioning failed", zap.Error(err))
 		return err

@@ -21,6 +21,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
+	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
@@ -32,15 +33,22 @@ func NewDocsCmd(rootCmd *cobra.Command) *cobra.Command {
 		Short: "Generate documentation for Butler",
 		Run: func(cmd *cobra.Command, args []string) {
 			log := logger.GetLogger()
+			outputDir := viper.GetString("docs.outputDir")
+
+			// Generate markdown docs
 			err := doc.GenMarkdownTree(rootCmd, outputDir)
 			if err != nil {
 				log.Error("Failed to generate documentation", zap.Error(err))
 				return
 			}
-			log.Info("Documentation generated successfully!")
+
+			log.Info("Documentation generated successfully!", zap.String("output", outputDir))
 		},
 	}
 
 	cmd.Flags().StringVarP(&outputDir, "output", "o", "./docs", "Directory to save generated documentation")
+	if err := viper.BindPFlag("docs.outputDir", cmd.Flags().Lookup("output")); err != nil {
+		logger.GetLogger().Fatal("Failed to bind flag", zap.Error(err))
+	}
 	return cmd
 }

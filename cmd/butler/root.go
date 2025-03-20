@@ -63,11 +63,20 @@ func init() {
 
 func initConfig() {
 	log := logger.GetLogger()
-	viper.SetConfigName("bootstrap")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath(".")
+
+	// Bind the --config flag to Viper
+	configPath := viper.GetString("config")
+	if configPath != "" {
+		viper.SetConfigFile(configPath)
+	} else {
+		viper.SetConfigName("bootstrap")
+		viper.SetConfigType("yaml")
+		viper.AddConfigPath(".")
+	}
+
 	viper.AutomaticEnv()
 
+	// Load configuration
 	if err := viper.ReadInConfig(); err == nil {
 		log.Info("Using config file", zap.String("file", viper.ConfigFileUsed()))
 	} else {

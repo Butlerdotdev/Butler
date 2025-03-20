@@ -19,10 +19,10 @@ package bootstrap
 import (
 	"butler/internal/handlers/bootstrap"
 	"butler/internal/logger"
-	"butler/internal/utils"
 	"context"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
@@ -35,27 +35,27 @@ func NewBootstrapCmd() *cobra.Command {
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			log := logger.GetLogger()
 			log.Info("Starting Butler management cluster bootstrap...")
+			if err := viper.BindPFlag("config", cmd.Flags().Lookup("config")); err != nil {
+				log.Fatal("Failed to bind config flag", zap.Error(err))
+			}
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			log := logger.GetLogger()
 
-			// Load Configuration
-			config, err := utils.LoadConfig(configFile)
-			if err != nil {
+			// Ensure config is loaded
+			if err := viper.ReadInConfig(); err != nil {
 				log.Fatal("Failed to load config", zap.Error(err))
 			}
 
-			// Initialize the Handler
+			// Initialize Handler and Start Bootstrap
 			handler := bootstrap.NewBootstrapHandler(context.Background(), log)
-			err = handler.HandleProvisionCluster(config)
-			if err != nil {
+			if err := handler.HandleProvisionCluster(); err != nil {
 				log.Fatal("Cluster provisioning failed", zap.Error(err))
 			}
 
 			log.Info("Butler bootstrap completed successfully! 🎉")
 		},
 	}
-
 	cmd.Flags().StringVarP(&configFile, "config", "c", "bootstrap.yaml", "Path to bootstrap configuration file")
 	return cmd
 }
