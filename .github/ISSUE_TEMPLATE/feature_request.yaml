@@ -1,0 +1,56 @@
+name: "Feature Request"
+description: "Suggest a new feature for Butler."
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! Please describe your idea clearly.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Feature Summary
+      description: "Briefly describe the feature and why it's needed."
+      placeholder: "I want Butler to support X because..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: "What problem does this solve? Provide real-world examples."
+      placeholder: "When deploying clusters, I often run into..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed Solution
+      description: "How do you suggest implementing this?"
+      placeholder: |
+        - Option 1: ...
+        - Option 2: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: "Have you considered other approaches? Why is this better?"
+      placeholder: "I also tried X, but it didn’t work because..."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: "Acknowledgement"
+      description: "Please confirm that you have provided enough details."
+      options:
+        - label: "I have searched for existing feature requests."
+          required: true

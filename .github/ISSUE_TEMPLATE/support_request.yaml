@@ -1,0 +1,35 @@
+name: "Support Request"
+description: "Ask a question or get help with Butler."
+title: "[Support]: "
+labels: ["question", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Need help? Describe your issue below.
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: "What environment are you using?"
+      placeholder: "Kubernetes 1.26, Butler v1.0.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Question / Problem
+      description: "Describe your issue or what you need help with."
+      placeholder: "I’m trying to do X, but..."
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: "Acknowledgement"
+      options:
+        - label: "I have searched for similar support requests."
+          required: true
