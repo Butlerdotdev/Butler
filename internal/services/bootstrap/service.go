@@ -61,6 +61,7 @@ func NewBootstrapService(ctx context.Context, config *models.BootstrapConfig, lo
 		return nil, fmt.Errorf("failed to initialize provider: %w", err)
 	}
 
+	// Init Adapters and Type Assertions
 	execAdapter := exec.NewClient(logger)
 
 	dockerAdapter, err := platforms.GetPlatformAdapter("docker", execAdapter, logger)
