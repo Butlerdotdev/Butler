@@ -20,7 +20,6 @@ import (
 	"butler/cmd/butler/bootstrap"
 	"butler/cmd/butler/generate"
 	"butler/internal/logger"
-	"fmt"
 	"os"
 	"strings"
 
@@ -43,7 +42,8 @@ and compliance enforcement using a declarative approach.`,
 		initConfig()
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Welcome to Butler CLI! Use --help to view available commands.")
+		log := logger.GetLogger()
+		log.Info("Welcome to Butler CLI! Use --help to view available commands.")
 	},
 }
 
