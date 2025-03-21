@@ -1,3 +1,19 @@
+// Package bootstrap provides services for provisioning the Butler management cluster.
+//
+// Copyright (c) 2025, The Butler Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package bootstrap
 
 import (
@@ -52,24 +68,37 @@ func NewBootstrapService(ctx context.Context, config *models.BootstrapConfig, lo
 		return nil, fmt.Errorf("failed to initialize Docker adapter: %w", err)
 	}
 	dockerConcrete := dockerAdapter.(*docker.DockerAdapter)
+	dockerConcrete, ok := dockerAdapter.(*docker.DockerAdapter)
+	if !ok {
+		return nil, fmt.Errorf("failed to assert DockerAdapter type")
+	}
 
 	talosAdapter, err := platforms.GetPlatformAdapter("talos", execAdapter, logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize Talos adapter: %w", err)
 	}
-	talosConcrete := talosAdapter.(*talos.TalosAdapter)
+	talosConcrete, ok := talosAdapter.(*talos.TalosAdapter)
+	if !ok {
+		return nil, fmt.Errorf("failed to assert TalosAdapter type")
+	}
 
 	kubectlAdapter, err := platforms.GetPlatformAdapter("kubectl", execAdapter, logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize Kubectl adapter: %w", err)
 	}
-	kubectlConcrete := kubectlAdapter.(*kubectl.KubectlAdapter)
+	kubectlConcrete, ok := kubectlAdapter.(*kubectl.KubectlAdapter)
+	if !ok {
+		return nil, fmt.Errorf("failed to assert KubectlAdapter type")
+	}
 
 	fluxAdapter, err := platforms.GetPlatformAdapter("flux", execAdapter, logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize Flux adapter: %w", err)
 	}
-	fluxConcrete := fluxAdapter.(*flux.FluxAdapter)
+	fluxConcrete, ok := fluxAdapter.(*flux.FluxAdapter)
+	if !ok {
+		return nil, fmt.Errorf("failed to assert FluxAdapter type")
+	}
 
 	kubeConfigManager := NewKubeConfigManager(logger, kubectlConcrete)
 
