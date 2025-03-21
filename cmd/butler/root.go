@@ -20,18 +20,30 @@ import (
 	"butler/cmd/butler/bootstrap"
 	"butler/cmd/butler/generate"
 	"butler/internal/logger"
+	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
+var cfgFile string
+
+// rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "butler",
 	Short: "Butler - Kubernetes as a Service",
+	Long: `Butler is an enterprise-grade Kubernetes as a Service Platform.
+It supports cluster lifecycle management, infrastructure provisioning, 
+and compliance enforcement using a declarative approach.`,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		cfgFile, _ = cmd.Flags().GetString("config")
+		initConfig()
+	},
 	Run: func(cmd *cobra.Command, args []string) {
-		logger.GetLogger().Info("Welcome to Butler CLI! Use --help to view available commands.")
+		fmt.Println("Welcome to Butler CLI! Use --help to view available commands.")
 	},
 }
 
@@ -46,33 +58,59 @@ func Execute() {
 	}
 }
 
-// RegisterCommands explicitly registers all subcommands
-func RegisterCommands() {
-	bootstrapCmd := bootstrap.NewBootstrapCmd()
-	bootstrapCmd.AddCommand(bootstrap.NewInteractiveCmd(rootCmd))
-	rootCmd.AddCommand(bootstrapCmd)
-	genCmd := generate.NewGenerateCmd()
-	genCmd.AddCommand(generate.NewDocsCmd(rootCmd))
-	rootCmd.AddCommand(genCmd)
-}
-
 func init() {
+	// Global configuration flag
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "Path to configuration file")
+	viper.BindPFlag("config", rootCmd.PersistentFlags().Lookup("config"))
+
+	// Initialize configuration
 	cobra.OnInitialize(initConfig)
+
+	// Register subcommands
 	RegisterCommands()
 }
 
 func initConfig() {
 	log := logger.GetLogger()
-	viper.SetConfigName("bootstrap")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath(".")
-	viper.AutomaticEnv()
 
-	if err := viper.ReadInConfig(); err == nil {
-		log.Info("Using config file", zap.String("file", viper.ConfigFileUsed()))
+	// If the user specified a config file via --config
+	if cfgFile != "" {
+		log.Info("Explicit config file detected", zap.String("cfgFile", cfgFile))
+		viper.SetConfigFile(cfgFile)
+
+		if err := viper.ReadInConfig(); err != nil {
+			log.Fatal("Failed to read config file", zap.Error(err))
+		} else {
+			log.Info("Using config file", zap.String("file", viper.ConfigFileUsed()))
+		}
 	} else {
-		log.Warn("No config file found, using defaults")
+		// Fallback to default config search locations
+		viper.SetConfigName("bootstrap")
+		viper.SetConfigType("yaml")
+		viper.AddConfigPath(".")
+		viper.AddConfigPath("$HOME/.butler")
+
+		if err := viper.ReadInConfig(); err != nil {
+			log.Warn("No config file found", zap.Error(err))
+		} else {
+			log.Info("Using default config file", zap.String("file", viper.ConfigFileUsed()))
+		}
 	}
+
+	viper.AutomaticEnv()
+	viper.SetEnvPrefix("BUTLER")
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+}
+
+// RegisterCommands explicitly registers all subcommands
+func RegisterCommands() {
+	bootstrapCmd := bootstrap.NewBootstrapCmd()
+	bootstrapCmd.AddCommand(bootstrap.NewInteractiveCmd(rootCmd))
+	rootCmd.AddCommand(bootstrapCmd)
+
+	genCmd := generate.NewGenerateCmd()
+	genCmd.AddCommand(generate.NewDocsCmd(rootCmd))
+	rootCmd.AddCommand(genCmd)
 }
 
 // GetRootCmd returns the root command
