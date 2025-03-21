@@ -19,43 +19,38 @@ package bootstrap
 import (
 	"butler/internal/handlers/bootstrap"
 	"butler/internal/logger"
-	"butler/internal/utils"
 	"context"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
 // NewBootstrapCmd creates the bootstrap command.
 func NewBootstrapCmd() *cobra.Command {
-	var configFile string
 	cmd := &cobra.Command{
 		Use:   "bootstrap",
 		Short: "Bootstrap the Butler management cluster",
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		Long: `Bootstraps the Butler management cluster with the provided configuration.
+This command provisions the necessary infrastructure and applies cluster configurations.`,
+		RunE: func(cmd *cobra.Command, args []string) error {
 			log := logger.GetLogger()
-			log.Info("Starting Butler management cluster bootstrap...")
-		},
-		Run: func(cmd *cobra.Command, args []string) {
-			log := logger.GetLogger()
-
-			// Load Configuration
-			config, err := utils.LoadConfig(configFile)
-			if err != nil {
-				log.Fatal("Failed to load config", zap.Error(err))
-			}
 
 			// Initialize the Handler
 			handler := bootstrap.NewBootstrapHandler(context.Background(), log)
-			err = handler.HandleProvisionCluster(config)
-			if err != nil {
-				log.Fatal("Cluster provisioning failed", zap.Error(err))
+			if err := handler.HandleProvisionCluster(); err != nil {
+				log.Error("Cluster provisioning failed", zap.Error(err))
+				return err
 			}
 
 			log.Info("Butler bootstrap completed successfully! 🎉")
+			return nil
 		},
 	}
 
-	cmd.Flags().StringVarP(&configFile, "config", "c", "bootstrap.yaml", "Path to bootstrap configuration file")
+	// Support CLI-based configuration file override
+	cmd.Flags().String("config", "", "Path to configuration file")
+	viper.BindPFlag("config", cmd.Flags().Lookup("config"))
+
 	return cmd
 }

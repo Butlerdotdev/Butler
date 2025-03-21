@@ -22,6 +22,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
@@ -39,35 +40,48 @@ func NewBootstrapHandler(ctx context.Context, logger *zap.Logger) *BootstrapHand
 	}
 }
 
-// HandleProvisionCluster validates input and calls the bootstrap service.
-func (h *BootstrapHandler) HandleProvisionCluster(config *models.BootstrapConfig) error {
+// HandleProvisionCluster loads config and calls the bootstrap service.
+func (h *BootstrapHandler) HandleProvisionCluster() error {
 	h.logger.Info("Handling cluster provisioning request...")
 
-	// validate Required Fields
-	if config.ManagementCluster.Name == "" {
-		return fmt.Errorf("cluster name is required")
-	}
-	if config.ManagementCluster.Provider == "" {
-		return fmt.Errorf("provider is required (e.g., 'nutanix', 'aws', 'azure')")
-	}
-	if len(config.ManagementCluster.Nodes) == 0 {
-		return fmt.Errorf("no nodes defined in configuration")
+	// Load config into the BootstrapConfig model
+	var config models.BootstrapConfig
+	if err := viper.Unmarshal(&config); err != nil {
+		h.logger.Error("Failed to load config", zap.Error(err))
+		return fmt.Errorf("failed to load configuration: %w", err)
 	}
 
-	// Call the Service
-	bootstrapService, err := service.NewBootstrapService(h.ctx, config, h.logger)
+	// Validate critical fields
+	if err := validateBootstrapConfig(&config); err != nil {
+		h.logger.Error("Configuration validation failed", zap.Error(err))
+		return fmt.Errorf("configuration invalid: %w", err)
+	}
+
+	// Initialize bootstrap service
+	bootstrapService, err := service.NewBootstrapService(h.ctx, &config, h.logger)
 	if err != nil {
 		h.logger.Error("Failed to initialize bootstrap service", zap.Error(err))
 		return err
 	}
 
-	// Proceed with provisioning
-	err = bootstrapService.ProvisionManagementCluster(config)
+	// Run provisioning process
+	err = bootstrapService.ProvisionManagementCluster()
 	if err != nil {
 		h.logger.Error("Cluster provisioning failed", zap.Error(err))
 		return err
 	}
 
 	h.logger.Info("Cluster provisioning completed successfully.")
+	return nil
+}
+
+// validateBootstrapConfig handles validation of required fields in the config.
+func validateBootstrapConfig(cfg *models.BootstrapConfig) error {
+	if cfg.ManagementCluster.Name == "" {
+		return fmt.Errorf("managementcluster.name is required")
+	}
+	if cfg.ManagementCluster.Provider == "" {
+		return fmt.Errorf("managementcluster.provider is required")
+	}
 	return nil
 }

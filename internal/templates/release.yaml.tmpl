@@ -1,0 +1,19 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: {{ .Component }}
+  namespace: {{ .Namespace }}
+spec:
+  interval: 1h0m0s
+  releaseName: {{ .Component }}
+  chart:
+    spec:
+      chart: {{ .Chart }}
+      version: {{ .Version }}
+      sourceRef:
+        kind: HelmRepository
+        name: {{ .Component }}
+        namespace: {{ .Namespace }}
+  valuesFrom:
+    - kind: ConfigMap
+      name: {{ .Component }}-values
