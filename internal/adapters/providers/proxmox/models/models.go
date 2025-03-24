@@ -15,3 +15,11 @@
 // limitations under the License.
 
 package models
+
+type ProxmoxSessionTokenResponse struct {
+	Data ProxmoxTokenData `json:"username"`
+}
+
+type ProxmoxTokenData struct {
+	Ticket string `json:"ticket"`
+}

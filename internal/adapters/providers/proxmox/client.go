@@ -17,12 +17,13 @@
 package proxmox
 
 import (
+	"butler/internal/adapters/providers/proxmox/models"
 	"bytes"
 	"context"
 	"crypto/tls"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -36,6 +37,7 @@ type ProxmoxClient struct {
 	endpoint string
 	username string
 	password string
+	token    string
 	client   *http.Client
 }
 
@@ -63,8 +65,14 @@ func NewProxmoxClient(ctx context.Context, endpoint, username, password string, 
 func (n *ProxmoxClient) DoRequest(method, path string, payload interface{}) (*http.Response, error) {
 	url := fmt.Sprintf("%s%s", n.endpoint, path)
 
-	// Encode credentials
-	authHeader := "Basic " + base64.StdEncoding.EncodeToString([]byte(n.username+":"+n.password))
+	// Obtain session token if not already set
+	if n.token == "" {
+		var err error
+		n.token, err = n.GetSessionToken()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get session token: %w", err)
+		}
+	}
 
 	// Convert payload to JSON
 	var jsonPayload []byte
@@ -82,9 +90,13 @@ func (n *ProxmoxClient) DoRequest(method, path string, payload interface{}) (*ht
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	// Set headers
-	req.Header.Set("Authorization", authHeader)
+	// Set headers and cookies
 	req.Header.Set("Content-Type", "application/json")
+	cookie := &http.Cookie{
+		Name:  "PVEAuthCookie",
+		Value: n.token,
+	}
+	req.AddCookie(cookie)
 
 	// Execute request
 	resp, err := n.client.Do(req)
@@ -93,4 +105,43 @@ func (n *ProxmoxClient) DoRequest(method, path string, payload interface{}) (*ht
 	}
 
 	return resp, nil
+}
+
+func (n *ProxmoxClient) GetSessionToken() (string, error) {
+	url := fmt.Sprintf("%s%s", n.endpoint, "/api2/json/access/ticket")
+
+	payload := map[string]string{
+		"username": n.username,
+		"password": n.password,
+	}
+	jsonPayload, _ := json.Marshal(payload)
+
+	req, err := http.NewRequest("GET", url, bytes.NewBuffer(jsonPayload))
+	if err != nil {
+		return "", fmt.Errorf("failed to create request for session token: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := n.client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("HTTP request failed for session token: %w", err)
+	}
+
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to read session token response: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("failed to get session token: %s", body)
+	}
+
+	var tokenData models.ProxmoxSessionTokenResponse
+	if err := json.Unmarshal(body, &tokenData); err != nil {
+		return "", fmt.Errorf("failed to decode session token response: %w", err)
+	}
+
+	return tokenData.Data.Ticket, nil
 }
