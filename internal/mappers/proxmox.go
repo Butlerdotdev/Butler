@@ -22,14 +22,15 @@ package mappers
 
 import (
 	"butler/internal/models"
+	"strings"
 )
 
-func NutanixToMap(cfg models.NutanixConfig) map[string]string {
+func ProxmoxToMap(cfg models.ProxmoxConfig) map[string]string {
 	return map[string]string{
-		"endpoint":    cfg.Endpoint,
-		"username":    cfg.Username,
-		"password":    cfg.Password,
-		"clusterUUID": cfg.ClusterUUID,
-		"subnetUUID":  cfg.SubnetUUID,
+		"endpoint":      cfg.Endpoint,
+		"username":      cfg.Username,
+		"password":      cfg.Password,
+		"vmStorageName": cfg.VMStorageName,
+		"nodes":         strings.Join(cfg.Nodes, ","),
 	}
 }

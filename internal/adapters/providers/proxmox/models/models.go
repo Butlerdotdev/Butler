@@ -23,3 +23,20 @@ type ProxmoxSessionTokenResponse struct {
 type ProxmoxTokenData struct {
 	Ticket string `json:"ticket"`
 }
+
+type ProxmoxVMConfig struct {
+	VMId    int    `json:"vmid"`
+	Name    string `json:"name"`
+	OSType  string `json:"ostype"`
+	Memory  int    `json:"memory"`
+	Cores   int    `json:"cores"`
+	Sockets int    `json:"sockets"`
+	Start   bool   `json:"start"`
+	OnBoot  bool   `json:"onboot"`
+	Ide2    string `json:"ide2"`
+	Scsihw  string `json:"scsihw"`
+	Scsi0   string `json:"scsi0"`
+	Numa    bool   `json:"numa"`
+	Cpu     string `json:"cpu"`
+	Net0    string `json:"net0"`
+}
