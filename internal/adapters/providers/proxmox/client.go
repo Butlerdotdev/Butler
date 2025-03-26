@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -37,12 +38,13 @@ type ProxmoxClient struct {
 	endpoint string
 	username string
 	password string
-	token    string
+	tokens   models.ProxmoxTokenData
 	client   *http.Client
+	nodes    []string
 }
 
 // NewProxmoxClient initializes a ProxmoxClient.
-func NewProxmoxClient(ctx context.Context, endpoint, username, password string, logger *zap.Logger) *ProxmoxClient {
+func NewProxmoxClient(ctx context.Context, endpoint, username, password, nodes string, logger *zap.Logger) *ProxmoxClient {
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // Disables TLS verification (TODO: Improve security, make this optional)
 	}
@@ -58,6 +60,7 @@ func NewProxmoxClient(ctx context.Context, endpoint, username, password string, 
 		username: username,
 		password: password,
 		client:   client,
+		nodes:    strings.Split(nodes, ","),
 	}
 }
 
@@ -65,12 +68,12 @@ func NewProxmoxClient(ctx context.Context, endpoint, username, password string, 
 func (n *ProxmoxClient) DoRequest(method, path string, payload interface{}) (*http.Response, error) {
 	url := fmt.Sprintf("%s%s", n.endpoint, path)
 
-	// Obtain session token if not already set
-	if n.token == "" {
+	// Obtain session tokens if not already set
+	if n.tokens.Ticket == "" {
 		var err error
-		n.token, err = n.GetSessionToken()
+		n.tokens, err = n.GetSessionToken()
 		if err != nil {
-			return nil, fmt.Errorf("failed to get session token: %w", err)
+			return nil, fmt.Errorf("failed to get session tokens: %w", err)
 		}
 	}
 
@@ -92,9 +95,10 @@ func (n *ProxmoxClient) DoRequest(method, path string, payload interface{}) (*ht
 
 	// Set headers and cookies
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("CSRFPreventionToken", n.tokens.CSRF)
 	cookie := &http.Cookie{
 		Name:  "PVEAuthCookie",
-		Value: n.token,
+		Value: n.tokens.Ticket,
 	}
 	req.AddCookie(cookie)
 
@@ -107,7 +111,7 @@ func (n *ProxmoxClient) DoRequest(method, path string, payload interface{}) (*ht
 	return resp, nil
 }
 
-func (n *ProxmoxClient) GetSessionToken() (string, error) {
+func (n *ProxmoxClient) GetSessionToken() (models.ProxmoxTokenData, error) {
 	url := fmt.Sprintf("%s%s", n.endpoint, "/api2/json/access/ticket")
 
 	payload := map[string]string{
@@ -116,32 +120,32 @@ func (n *ProxmoxClient) GetSessionToken() (string, error) {
 	}
 	jsonPayload, _ := json.Marshal(payload)
 
-	req, err := http.NewRequest("GET", url, bytes.NewBuffer(jsonPayload))
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonPayload))
 	if err != nil {
-		return "", fmt.Errorf("failed to create request for session token: %w", err)
+		return models.ProxmoxTokenData{}, fmt.Errorf("failed to create request for session token: %w", err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := n.client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("HTTP request failed for session token: %w", err)
+		return models.ProxmoxTokenData{}, fmt.Errorf("HTTP request failed for session token: %w", err)
 	}
 
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("failed to read session token response: %w", err)
+		return models.ProxmoxTokenData{}, fmt.Errorf("failed to read session token response: %w", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("failed to get session token: %s", body)
+		return models.ProxmoxTokenData{}, fmt.Errorf("session token request returned unhealthy status code: %s", body)
 	}
 
 	var tokenData models.ProxmoxSessionTokenResponse
 	if err := json.Unmarshal(body, &tokenData); err != nil {
-		return "", fmt.Errorf("failed to decode session token response: %w", err)
+		return models.ProxmoxTokenData{}, fmt.Errorf("failed to decode session token response: %w", err)
 	}
 
-	return tokenData.Data.Ticket, nil
+	return tokenData.Data, nil
 }

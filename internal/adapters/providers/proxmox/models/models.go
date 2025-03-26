@@ -17,11 +17,12 @@
 package models
 
 type ProxmoxSessionTokenResponse struct {
-	Data ProxmoxTokenData `json:"username"`
+	Data ProxmoxTokenData `json:"data"`
 }
 
 type ProxmoxTokenData struct {
 	Ticket string `json:"ticket"`
+	CSRF   string `json:"CSRFPreventionToken"`
 }
 
 type ProxmoxVMConfig struct {
