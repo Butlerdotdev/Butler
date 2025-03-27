@@ -18,7 +18,7 @@ package bootstrap
 
 import (
 	"butler/internal/models"
-	service "butler/internal/services/bootstrap"
+	service "butler/internal/services/bootstrap/proxmox"
 	"context"
 	"fmt"
 

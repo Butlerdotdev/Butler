@@ -17,7 +17,7 @@
 package bootstrap
 
 import (
-	"butler/internal/handlers/bootstrap"
+	bootstrap "butler/internal/handlers/bootstrap/proxmox" // TODO: Break this out into separate commands
 	"butler/internal/logger"
 	"context"
 

@@ -19,6 +19,7 @@ package proxmox
 import (
 	"butler/internal/adapters/providers/proxmox/models"
 	sharedModels "butler/internal/models"
+	"encoding/json"
 	"fmt"
 	"io"
 	"math/rand"
@@ -46,7 +47,7 @@ func NewProxmoxAdapter(client *ProxmoxClient, logger *zap.Logger) *ProxmoxAdapte
 func (n *ProxmoxAdapter) CreateVM(vm sharedModels.VMConfig) (string, error) {
 	n.logger.Info("Creating VM", zap.String("name", vm.Name), zap.Int("CPU", vm.CPU), zap.String("RAM", vm.RAM), zap.String("Disk", vm.Disk))
 
-	vmId, err := n.GetNextVMId()
+	vmId, err := n.GetNextVMId(vm.AvailableVMIdStart, vm.AvailableVMIdEnd)
 	if err != nil {
 		n.logger.Error("Failed to get next VM ID", zap.String("name", vm.Name), zap.Error(err))
 		return "", err
@@ -63,8 +64,9 @@ func (n *ProxmoxAdapter) CreateVM(vm sharedModels.VMConfig) (string, error) {
 		OnBoot:  true,
 		Ide2:    strings.Join([]string{vm.IsoUUID, "media=cdrom"}, ","),
 		Scsihw:  "virtio-scsi-single",
-		Scsi0:   strings.Join([]string{vm.StorageLocation, ":", parseDisk(vm.Disk), "iothread=on"}, ""),
+		Scsi0:   strings.Join([]string{vm.StorageLocation, ":", parseDisk(vm.Disk), ",iothread=on"}, ""),
 		Numa:    false,
+		Agent:   true,
 		Cpu:     "host",
 		Net0:    "virtio,bridge=vmbr0,firewall=1",
 	}
@@ -102,9 +104,29 @@ func (n *ProxmoxAdapter) DeleteVM(vmID string) error {
 
 // GetVMStatus fetches the VM's health status and IP address from Proxmox VE.
 func (n *ProxmoxAdapter) GetVMStatus(vmName string) (sharedModels.VMStatus, error) {
-	// TODO: Implement
+	// We dont know what node the VM is on, so we need to get all VMs and find the one with the right name
+	allVms, err := n.GetAllVms()
+	if err != nil {
+		n.logger.Error("Failed to get all VMs", zap.Error(err))
+		return sharedModels.VMStatus{}, err
+	}
 
-	return sharedModels.VMStatus{}, nil
+	for _, vm := range allVms.Data {
+		if vm.Name == vmName {
+			n.logger.Info("Found VM", zap.String("name", vm.Name), zap.Int("id", vm.VMId), zap.String("status", vm.Status))
+			var vmStatus sharedModels.VMStatus
+			if vm.Status == "running" {
+				vmStatus.Healthy = true
+			} else {
+				vmStatus.Healthy = false
+			}
+			vmStatus.IP = "" // TODO: Get IP address from Proxmox API
+			return vmStatus, nil
+		}
+	}
+
+	n.logger.Error("VM not found", zap.String("name", vmName))
+	return sharedModels.VMStatus{}, fmt.Errorf("VM %s not found", vmName)
 }
 
 func (n *ProxmoxAdapter) GetRandomNode() (string, error) {
@@ -117,10 +139,54 @@ func (n *ProxmoxAdapter) GetRandomNode() (string, error) {
 	return n.client.nodes[randomIndex], nil
 }
 
-func (n *ProxmoxAdapter) GetNextVMId() (int, error) {
-	// TODO: Implement with range defined in the config
+func (n *ProxmoxAdapter) GetNextVMId(vmRangeStart int, vmRangeEnd int) (int, error) {
+	allVms, err := n.GetAllVms()
+	if err != nil {
+		n.logger.Error("Failed to get all VMs", zap.Error(err))
+		return -1, err
+	}
 
-	rand.New(rand.NewSource(time.Now().UnixNano()))
-	randomIndex := rand.Intn(900)
-	return randomIndex + 100, nil
+	ids := map[int]bool{}
+	for _, vm := range allVms.Data {
+		ids[vm.VMId] = true
+	}
+
+	for i := vmRangeStart; i <= vmRangeEnd; i++ {
+		if !ids[i] {
+			return i, nil
+		}
+	}
+
+	// If no IDs are available in the range, return an error
+	return -1, fmt.Errorf("no available VM IDs in the range %d-%d", vmRangeStart, vmRangeEnd)
+}
+
+func (n *ProxmoxAdapter) GetAllVms() (models.ProxmoxAllVMResponse, error) {
+	n.logger.Info("Getting VM List")
+
+	// Get the list of all VMs from Proxmox API
+	path := "/api2/json/cluster/resources?type=vm"
+	resp, err := n.client.DoRequest("GET", path, nil)
+	if err != nil {
+		n.logger.Error("Failed to send request to retrieve all VMs", zap.Error(err))
+		return models.ProxmoxAllVMResponse{}, err
+	}
+	defer resp.Body.Close()
+
+	// Read and check response
+	body, _ := io.ReadAll(resp.Body)
+	n.logger.Info("Response body", zap.ByteString("body", body))
+	if resp.StatusCode >= 300 {
+		n.logger.Error("Failed to get all VMs", zap.Int("status", resp.StatusCode), zap.ByteString("response", body))
+		return models.ProxmoxAllVMResponse{}, fmt.Errorf("Failed to get all VMs: %s", body)
+	}
+
+	var vms models.ProxmoxAllVMResponse
+	if err := json.Unmarshal(body, &vms); err != nil {
+		n.logger.Error("Failed to unmarshal VM response", zap.Error(err))
+		return models.ProxmoxAllVMResponse{}, fmt.Errorf("failed to unmarshal VM response: %w", err)
+	}
+
+	n.logger.Info("VMs retrieved successfully")
+	return vms, nil
 }

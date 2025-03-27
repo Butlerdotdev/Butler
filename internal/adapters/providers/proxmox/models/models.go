@@ -34,10 +34,30 @@ type ProxmoxVMConfig struct {
 	Sockets int    `json:"sockets"`
 	Start   bool   `json:"start"`
 	OnBoot  bool   `json:"onboot"`
+	Agent   bool   `json:"agent"`
 	Ide2    string `json:"ide2"`
 	Scsihw  string `json:"scsihw"`
 	Scsi0   string `json:"scsi0"`
 	Numa    bool   `json:"numa"`
 	Cpu     string `json:"cpu"`
 	Net0    string `json:"net0"`
+}
+
+type ProxmoxAllVMRequest struct {
+	Type string `json:"type"`
+}
+
+type ProxmoxAllVMResponse struct {
+	Data []ProxmoxVMResponse `json:"data"`
+}
+
+type ProxmoxVMResponse struct {
+	Name    string `json:"name"`
+	MaxCpu  int    `json:"maxcpu"`
+	Uptime  int    `json:"uptime"`
+	Node    string `json:"node"`
+	Status  string `json:"status"`
+	VMId    int    `json:"vmid"`
+	MaxMem  int    `json:"maxmem"`
+	MaxDisk int    `json:"maxdisk"`
 }

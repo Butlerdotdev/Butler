@@ -22,15 +22,18 @@ package mappers
 
 import (
 	"butler/internal/models"
+	"fmt"
 	"strings"
 )
 
 func ProxmoxToMap(cfg models.ProxmoxConfig) map[string]string {
 	return map[string]string{
-		"endpoint":      cfg.Endpoint,
-		"username":      cfg.Username,
-		"password":      cfg.Password,
-		"vmStorageName": cfg.VMStorageName,
-		"nodes":         strings.Join(cfg.Nodes, ","),
+		"endpoint":           cfg.Endpoint,
+		"username":           cfg.Username,
+		"password":           cfg.Password,
+		"storageLocation":    cfg.StorageLocation,
+		"availableVMIdStart": fmt.Sprintf("%d", cfg.AvailableVMIdStart),
+		"availableVMIdEnd":   fmt.Sprintf("%d", cfg.AvailableVMIdEnd),
+		"nodes":              strings.Join(cfg.Nodes, ","),
 	}
 }
