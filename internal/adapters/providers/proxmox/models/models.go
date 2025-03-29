@@ -34,7 +34,7 @@ type ProxmoxVMConfig struct {
 	Sockets int    `json:"sockets"`
 	Start   bool   `json:"start"`
 	OnBoot  bool   `json:"onboot"`
-	Agent   bool   `json:"agent"`
+	Agent   string `json:"agent"`
 	Ide2    string `json:"ide2"`
 	Scsihw  string `json:"scsihw"`
 	Scsi0   string `json:"scsi0"`
@@ -60,4 +60,24 @@ type ProxmoxVMResponse struct {
 	VMId    int    `json:"vmid"`
 	MaxMem  int    `json:"maxmem"`
 	MaxDisk int    `json:"maxdisk"`
+}
+
+type ProxmoxNetworkInterfaceResponse struct {
+	Data ProxmoxNetworkInterfacesData `json:"data"`
+}
+
+type ProxmoxNetworkInterfacesData struct {
+	Result []ProxmoxNetworkInterfaces `json:"result"`
+}
+
+type ProxmoxNetworkInterfaces struct {
+	Name            string             `json:"name"`
+	HardwareAddress string             `json:"hardware-address"`
+	IpAddresses     []ProxmoxIpAddress `json:"ip-addresses"`
+}
+
+type ProxmoxIpAddress struct {
+	IpAddressType string `json:"ip-address-type"`
+	IpAddress     string `json:"ip-address"`
+	Prefix        int    `json:"prefix"`
 }
