@@ -166,7 +166,7 @@ func (t *TalosInitializer) GenerateConfig(ctx context.Context, config *models.Ta
 	{
 		"op": "replace",
 		"path": "/machine/install/image",
-		"value": "factory.talos.dev/installer/e048aaf4461ff9f9576c9a42f760f2fef566559bd4933f322853ac291e46f238:v1.9.5"
+		"value": "factory.talos.dev/installer/cd7cb912ee56b518f1fbd30034e65e435d3865a23beb99c2283c92e9fb357843:v1.9.5"
 	}
 ]`,
 	)
