@@ -54,7 +54,7 @@ func NewBootstrapService(ctx context.Context, config *models.BootstrapConfig, lo
 	provider, err := providers.NewProviderFactory(
 		ctx,
 		config.ManagementCluster.Provider,
-		mappers.NutanixToMap(config.ManagementCluster.Nutanix),
+		mappers.NewMapping(config.ManagementCluster.Provider, config.ManagementCluster),
 		logger,
 	)
 	if err != nil {

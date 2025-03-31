@@ -18,15 +18,18 @@ package models
 
 // VMConfig represents a generic VM configuration that works across all providers.
 type VMConfig struct {
-	Name        string
-	Role        string
-	CPU         int
-	RAM         string
-	Disk        string
-	Count       int
-	IsoUUID     string
-	ClusterUUID string
-	SubnetUUID  string
+	Name               string
+	Role               string
+	CPU                int
+	RAM                string
+	Disk               string
+	StorageLocation    string
+	AvailableVMIdStart int
+	AvailableVMIdEnd   int
+	Count              int
+	IsoUUID            string
+	ClusterUUID        string
+	SubnetUUID         string
 }
 
 // ClusterConfig represents a generic cluster configuration across providers.

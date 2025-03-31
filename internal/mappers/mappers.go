@@ -20,16 +20,15 @@
 
 package mappers
 
-import (
-	"butler/internal/models"
-)
+import "butler/internal/models"
 
-func NutanixToMap(cfg models.NutanixConfig) map[string]string {
-	return map[string]string{
-		"endpoint":    cfg.Endpoint,
-		"username":    cfg.Username,
-		"password":    cfg.Password,
-		"clusterUUID": cfg.ClusterUUID,
-		"subnetUUID":  cfg.SubnetUUID,
+func NewMapping(provider string, config models.ManagementClusterConfig) map[string]string {
+	switch provider {
+	case "proxmox":
+		return ProxmoxToMap(config.Proxmox)
+	case "nutanix":
+		return NutanixToMap(config.Nutanix)
+	default:
+		return nil
 	}
 }

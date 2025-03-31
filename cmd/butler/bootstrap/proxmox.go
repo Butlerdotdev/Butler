@@ -17,23 +17,34 @@
 package bootstrap
 
 import (
+	bootstrap "butler/internal/handlers/bootstrap/proxmox"
 	"butler/internal/logger"
-	"fmt"
+	"context"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
-// NewBootstrapCmd creates the bootstrap command.
-func NewBootstrapCmd() *cobra.Command {
+// NewProxmoxBootstrapCmd creates the bootstrap command for the Proxmox provider
+func NewProxmoxBootstrapCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "bootstrap",
-		Short: "Bootstrap the Butler management cluster",
-		Long:  `Bootstraps the Butler management cluster with the provided configuration. Requires a subcommand to be called specifying the provider.`,
+		Use:   "proxmox",
+		Short: "Bootstrap the Butler management cluster with the Proxmox provider",
+		Long: `Bootstraps the Butler management cluster with the provided configuration.
+This command provisions the necessary infrastructure in Proxmox and applies cluster configurations.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			log := logger.GetLogger()
-			log.Error("Bootstrap needs to be run with a subcommand specifying the provider (e.g., 'butler bootstrap proxmox' or 'butler bootstrap nutanix').")
-			return fmt.Errorf("bootstrap needs to be run with a subcommand specifying the provider (e.g., 'butler bootstrap proxmox' or 'butler bootstrap nutanix')")
+
+			// Initialize the Handler
+			handler := bootstrap.NewBootstrapHandler(context.Background(), log)
+			if err := handler.HandleProvisionCluster(); err != nil {
+				log.Error("Cluster provisioning failed", zap.Error(err))
+				return err
+			}
+
+			log.Info("Butler bootstrap completed successfully! 🎉")
+			return nil
 		},
 	}
 

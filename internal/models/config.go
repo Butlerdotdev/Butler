@@ -26,6 +26,7 @@ type ManagementClusterConfig struct {
 	Name       string        `mapstructure:"name" yaml:"name"`
 	Provider   string        `mapstructure:"provider" yaml:"provider"`
 	Nutanix    NutanixConfig `mapstructure:"nutanix" yaml:"nutanix"`
+	Proxmox    ProxmoxConfig `mapstructure:"proxmox" yaml:"proxmox"`
 	Nodes      []NodeConfig  `mapstructure:"nodes" yaml:"nodes"`
 	Talos      TalosConfig   `mapstructure:"talos" yaml:"talos"`
 	ClusterAPI ClusterAPI    `mapstructure:"clusterAPI" yaml:"clusterAPI"`
@@ -49,6 +50,17 @@ type NutanixConfig struct {
 	Password    string `mapstructure:"password" yaml:"password"`
 	ClusterUUID string `mapstructure:"clusterUUID" yaml:"clusterUUID"`
 	SubnetUUID  string `mapstructure:"subnetUUID" yaml:"subnetUUID"`
+}
+
+// ProxmoxConfig defines the Proxmox API connection and cluster details.
+type ProxmoxConfig struct {
+	Endpoint           string   `mapstructure:"endpoint" yaml:"endpoint"`
+	Username           string   `mapstructure:"username" yaml:"username"`
+	Password           string   `mapstructure:"password" yaml:"password"`
+	StorageLocation    string   `mapstructure:"storageLocation" yaml:"storageLocation"`
+	AvailableVMIdStart int      `mapstructure:"availableVMIdStart" yaml:"availableVMIdStart"`
+	AvailableVMIdEnd   int      `mapstructure:"availableVMIdEnd" yaml:"availableVMIdEnd"`
+	Nodes              []string `mapstructure:"nodes" yaml:"nodes"`
 }
 
 // NodeConfig represents a single VM configuration.

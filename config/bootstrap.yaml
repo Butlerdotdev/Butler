@@ -9,6 +9,17 @@ managementCluster:
     password: 
     clusterUUID: 
     subnetUUID: 
+
+  # Proxmox API Configuration
+  proxmox:
+    endpoint: 
+    username: 
+    password: 
+    storageLocation: 
+    availableVMIdStart: 
+    availableVMIdEnd: 
+    nodes: 
+      - ""
    
   # Node Configuration (Control Planes & Workers)
   nodes:

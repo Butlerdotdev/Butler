@@ -105,7 +105,8 @@ func initConfig() {
 // RegisterCommands explicitly registers all subcommands
 func RegisterCommands() {
 	bootstrapCmd := bootstrap.NewBootstrapCmd()
-	bootstrapCmd.AddCommand(bootstrap.NewInteractiveCmd(rootCmd))
+	bootstrapCmd.AddCommand(bootstrap.NewNutanixBootstrapCmd(rootCmd))
+	bootstrapCmd.AddCommand(bootstrap.NewProxmoxBootstrapCmd())
 	rootCmd.AddCommand(bootstrapCmd)
 
 	genCmd := generate.NewGenerateCmd()
