@@ -93,7 +93,62 @@ func (t *TalosInitializer) GenerateConfig(ctx context.Context, config *models.Ta
 	_, err := t.talosAdapter.ExecuteCommand(ctx,
 		"gen", "config", config.ClusterName, fmt.Sprintf("https://%s", config.ControlPlaneEndpoint),
 		"--output", config.OutputDir,
-		"--config-patch", `[{"op": "replace", "path": "/machine/time", "value": {"disabled": true}}]`,
+		"--config-patch", `[
+	{
+		"op": "replace",
+		"path": "/machine/time",
+		"value": { "disabled": true }
+	},
+	{
+		"op": "add",
+		"path": "/machine/kernel",
+		"value": {
+			"modules": [
+				{ "name": "openvswitch" }
+			]
+		}
+	},
+	{
+		"op": "add",
+		"path": "/cluster/network/cni",
+		"value": { "name": "none" }
+	},
+	{
+		"op": "replace",
+		"path": "/cluster/network/podSubnets",
+		"value": [ "10.16.0.0/16" ]
+	},
+	{
+		"op": "add",
+		"path": "/machine/kubelet/extraMounts",
+		"value": [
+			{
+				"source": "/run/openvswitch",
+				"destination": "/run/openvswitch",
+				"type": "bind",
+				"options": ["rbind", "rw"]
+			},
+			{
+				"source": "/run/ovn",
+				"destination": "/run/ovn",
+				"type": "bind",
+				"options": ["rbind", "rw"]
+			},
+			{
+				"source": "/var/log/openvswitch",
+				"destination": "/var/log/openvswitch",
+				"type": "bind",
+				"options": ["rbind", "rw"]
+			},
+			{
+				"source": "/var/log/ovn",
+				"destination": "/var/log/ovn",
+				"type": "bind",
+				"options": ["rbind", "rw"]
+			}
+		]
+	}
+]`,
 	)
 	return err
 }
