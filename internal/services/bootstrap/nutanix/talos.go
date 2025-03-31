@@ -103,9 +103,18 @@ func (t *TalosInitializer) GenerateConfig(ctx context.Context, config *models.Ta
 		"op": "add",
 		"path": "/machine/kernel",
 		"value": {
-			"modules": [
-				{ "name": "openvswitch" }
-			]
+		  "modules": [
+			{
+			  "name": "openvswitch"
+			},
+			{
+			  "name": "drbd",
+			  "parameters": ["usermode_helper=disabled"]
+			},
+			{
+			  "name": "drbd_transport_tcp"
+			}
+		  ]
 		}
 	},
 	{
@@ -145,8 +154,19 @@ func (t *TalosInitializer) GenerateConfig(ctx context.Context, config *models.Ta
 				"destination": "/var/log/ovn",
 				"type": "bind",
 				"options": ["rbind", "rw"]
+			},
+			{
+				"source": "/usr/local/etc/iscsi",
+				"destination": "/etc/iscsi",
+				"type": "bind",
+				"options": ["rbind", "rw", "rshared"]
 			}
 		]
+	},
+	{
+		"op": "replace",
+		"path": "/machine/install/image",
+		"value": "factory.talos.dev/installer/cd7cb912ee56b518f1fbd30034e65e435d3865a23beb99c2283c92e9fb357843:v1.9.5"
 	}
 ]`,
 	)
