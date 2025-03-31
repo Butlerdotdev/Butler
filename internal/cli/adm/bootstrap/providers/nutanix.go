@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package bootstrap
+package providers
 
 import (
 	bootstrap "butler/internal/handlers/bootstrap/nutanix"
