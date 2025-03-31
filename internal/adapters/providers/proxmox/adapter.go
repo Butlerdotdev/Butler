@@ -131,7 +131,7 @@ func (n *ProxmoxAdapter) DeleteVM(vmID string) error {
 	}
 
 	path := fmt.Sprintf("/api2/extjs/nodes/%s/qemu/%d?purge=1&destroy-unreferenced-disks=1", node, vmIdInt)
-	resp, err := n.client.DoRequest("GET", path, nil)
+	resp, err := n.client.DoRequest("DELETE", path, nil)
 	if err != nil {
 		n.logger.Error("failed to send request to delete VM", zap.Error(err))
 		return err

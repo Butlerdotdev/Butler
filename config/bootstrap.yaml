@@ -15,8 +15,11 @@ managementCluster:
     endpoint: 
     username: 
     password: 
-    vmStorageName: 
-    nodes: []
+    storageLocation: 
+    availableVMIdStart: 
+    availableVMIdEnd: 
+    nodes: 
+      - ""
    
   # Node Configuration (Control Planes & Workers)
   nodes:
