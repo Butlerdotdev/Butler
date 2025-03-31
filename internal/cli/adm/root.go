@@ -1,4 +1,4 @@
-// Package butler is the root command for the Butler CLI, which serves as the primary entry point.
+// Package adm is the root command for the Butler ADM, which serves as the primary entry point butleradm commands.
 //
 // Copyright (c) 2025, The Butler Authors
 //
@@ -14,11 +14,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package butler
+package adm
 
 import (
-	"butler/cmd/butler/bootstrap"
-	"butler/cmd/butler/generate"
+	"butler/internal/cli/adm/bootstrap"
+	"butler/internal/cli/adm/bootstrap/providers"
+	"butler/internal/cli/adm/generate"
 	"butler/internal/logger"
 	"os"
 	"strings"
@@ -32,7 +33,7 @@ var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "butler",
+	Use:   "butleradm",
 	Short: "Butler - Kubernetes as a Service",
 	Long: `Butler is an enterprise-grade Kubernetes as a Service Platform.
 It supports cluster lifecycle management, infrastructure provisioning, 
@@ -105,8 +106,8 @@ func initConfig() {
 // RegisterCommands explicitly registers all subcommands
 func RegisterCommands() {
 	bootstrapCmd := bootstrap.NewBootstrapCmd()
-	bootstrapCmd.AddCommand(bootstrap.NewNutanixBootstrapCmd(rootCmd))
-	bootstrapCmd.AddCommand(bootstrap.NewProxmoxBootstrapCmd())
+	bootstrapCmd.AddCommand(providers.NewNutanixBootstrapCmd(rootCmd))
+	bootstrapCmd.AddCommand(providers.NewProxmoxBootstrapCmd())
 	rootCmd.AddCommand(bootstrapCmd)
 
 	genCmd := generate.NewGenerateCmd()

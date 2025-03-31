@@ -1,4 +1,4 @@
-// Package main is the entry point for the Butler CLI.
+// Package ctl is the root command for the Butler CTL, which serves as the primary entry point for butlerctl commands.
 //
 // Copyright (c) 2025, The Butler Authors
 //
@@ -14,16 +14,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
-
-import (
-	tools "butler/cmd/butler"
-	_ "butler/cmd/butler/generate"
-	"butler/internal/logger"
-)
-
-// main initializes the logger and executes the Butler CLI.
-func main() {
-	logger.InitLogger()
-	tools.Execute()
-}
+package ctl
