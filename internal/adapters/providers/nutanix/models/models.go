@@ -30,12 +30,13 @@ type BootstrapConfig struct {
 		} `yaml:"nutanix"`
 
 		Nodes []struct {
-			Role    string `yaml:"role"`
-			CPU     int    `yaml:"cpu"`
-			RAM     string `yaml:"ram"`
-			Disk    string `yaml:"disk"`
-			Count   int    `yaml:"count"`
-			IsoUUID string `yaml:"isoUUID"`
+			Role       string   `yaml:"role"`
+			CPU        int      `yaml:"cpu"`
+			RAM        string   `yaml:"ram"`
+			Disk       string   `yaml:"disk"`
+			ExtraDisks []string `yaml:"extraDisks"`
+			Count      int      `yaml:"count"`
+			IsoUUID    string   `yaml:"isoUUID"`
 		} `yaml:"nodes"`
 
 		Talos struct {
