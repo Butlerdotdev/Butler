@@ -19,6 +19,7 @@ import (
 	"butler/internal/adapters/exec"
 	"butler/internal/adapters/platforms/docker"
 	"butler/internal/adapters/platforms/flux"
+	"butler/internal/adapters/platforms/helm"
 	"butler/internal/adapters/platforms/kubectl"
 	"butler/internal/adapters/platforms/talos"
 	"fmt"
@@ -37,6 +38,8 @@ func GetPlatformAdapter(name string, execAdapter exec.ExecAdapter, logger *zap.L
 		return docker.NewDockerAdapter(execAdapter, logger), nil
 	case "flux":
 		return flux.NewFluxAdapter(execAdapter, logger), nil
+	case "helm":
+		return helm.NewHelmAdapter(execAdapter, logger), nil
 	default:
 		return nil, fmt.Errorf("unsupported platform: %s", name)
 	}
