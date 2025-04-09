@@ -23,6 +23,7 @@ type VMConfig struct {
 	CPU                int
 	RAM                string
 	Disk               string
+	ExtraDisks         []string
 	StorageLocation    string
 	AvailableVMIdStart int
 	AvailableVMIdEnd   int

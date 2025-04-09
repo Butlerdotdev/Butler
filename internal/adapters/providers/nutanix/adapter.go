@@ -45,6 +45,8 @@ func NewNutanixAdapter(client *NutanixClient, logger *zap.Logger) *NutanixAdapte
 func (n *NutanixAdapter) CreateVM(vm sharedModels.VMConfig) (string, error) {
 	n.logger.Info("Creating VM", zap.String("name", vm.Name), zap.Int("CPU", vm.CPU), zap.String("RAM", vm.RAM), zap.String("Disk", vm.Disk))
 
+	diskList := buildDiskList(vm)
+
 	// Construct the Nutanix VM payload using structs
 	payload := models.NutanixVMConfig{
 		Metadata: models.Metadata{
@@ -60,31 +62,7 @@ func (n *NutanixAdapter) CreateVM(vm sharedModels.VMConfig) (string, error) {
 				BootConfig: models.BootConfig{
 					BootDeviceOrderList: []string{"CDROM", "DISK"},
 				},
-				DiskList: []models.Disk{
-					{
-						DeviceProperties: models.DeviceProperties{
-							DeviceType: "DISK",
-							DiskAddress: models.DiskAddress{
-								AdapterType: "SCSI",
-								DeviceIndex: 0,
-							},
-						},
-						DiskSizeMiB: parseDisk(vm.Disk),
-					},
-					{
-						DeviceProperties: models.DeviceProperties{
-							DeviceType: "CDROM",
-							DiskAddress: models.DiskAddress{
-								AdapterType: "IDE",
-								DeviceIndex: 1,
-							},
-						},
-						DataSourceReference: &models.DataSourceReference{
-							Kind: "image",
-							UUID: vm.IsoUUID,
-						},
-					},
-				},
+				DiskList: diskList,
 				NicList: []models.Nic{
 					{
 						SubnetReference: models.SubnetReference{

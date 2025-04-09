@@ -65,12 +65,13 @@ type ProxmoxConfig struct {
 
 // NodeConfig represents a single VM configuration.
 type NodeConfig struct {
-	Role    string `mapstructure:"role" yaml:"role"`
-	Count   int    `mapstructure:"count" yaml:"count"`
-	CPU     int    `mapstructure:"cpu" yaml:"cpu"`
-	RAM     string `mapstructure:"ram" yaml:"ram"`
-	Disk    string `mapstructure:"disk" yaml:"disk"`
-	IsoUUID string `mapstructure:"isoUUID" yaml:"isoUUID"`
+	Role       string   `mapstructure:"role" yaml:"role"`
+	Count      int      `mapstructure:"count" yaml:"count"`
+	CPU        int      `mapstructure:"cpu" yaml:"cpu"`
+	RAM        string   `mapstructure:"ram" yaml:"ram"`
+	Disk       string   `mapstructure:"disk" yaml:"disk"`
+	IsoUUID    string   `mapstructure:"isoUUID" yaml:"isoUUID"`
+	ExtraDisks []string `mapstructure:"extraDisks" yaml:"extraDisks"`
 }
 
 // TalosConfig holds Talos Linux bootstrapping details.

@@ -16,7 +16,11 @@
 
 package nutanix
 
-import "fmt"
+import (
+	"butler/internal/adapters/providers/nutanix/models"
+	sharedModels "butler/internal/models"
+	"fmt"
+)
 
 // parseRAM converts "8GB" to MiB
 func parseRAM(ram string) int {
@@ -30,4 +34,46 @@ func parseDisk(disk string) int {
 	var size int
 	fmt.Sscanf(disk, "%dGB", &size)
 	return size * 1024
+}
+
+func buildDiskList(vm sharedModels.VMConfig) []models.Disk {
+	disks := []models.Disk{
+		{
+			DeviceProperties: models.DeviceProperties{
+				DeviceType: "DISK",
+				DiskAddress: models.DiskAddress{
+					AdapterType: "SCSI",
+					DeviceIndex: 0,
+				},
+			},
+			DiskSizeMiB: parseDisk(vm.Disk),
+		},
+		{
+			DeviceProperties: models.DeviceProperties{
+				DeviceType: "CDROM",
+				DiskAddress: models.DiskAddress{
+					AdapterType: "IDE",
+					DeviceIndex: 1,
+				},
+			},
+			DataSourceReference: &models.DataSourceReference{
+				Kind: "image",
+				UUID: vm.IsoUUID,
+			},
+		},
+	}
+
+	for i, extra := range vm.ExtraDisks {
+		disks = append(disks, models.Disk{
+			DeviceProperties: models.DeviceProperties{
+				DeviceType: "DISK",
+				DiskAddress: models.DiskAddress{
+					AdapterType: "SCSI",
+					DeviceIndex: i + 1,
+				},
+			},
+			DiskSizeMiB: parseDisk(extra),
+		})
+	}
+	return disks
 }

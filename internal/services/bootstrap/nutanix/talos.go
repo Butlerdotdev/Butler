@@ -167,6 +167,20 @@ func (t *TalosInitializer) GenerateConfig(ctx context.Context, config *models.Ta
 		"op": "replace",
 		"path": "/machine/install/image",
 		"value": "factory.talos.dev/installer/cd7cb912ee56b518f1fbd30034e65e435d3865a23beb99c2283c92e9fb357843:v1.9.5"
+	},
+	{
+		"op": "add",
+		"path": "/machine/disks",
+		"value": [
+		  {
+			"device": "/dev/sdb",
+			"partitions": [
+			  {
+				"mountpoint": "/var/lib/piraeus-datastore/pool1"
+			  }
+			]
+		  }
+		]
 	}
 ]`,
 	)

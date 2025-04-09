@@ -50,6 +50,7 @@ func (p *Provisioner) ProvisionVMs(config *models.BootstrapConfig) error {
 				RAM:         node.RAM,
 				Disk:        node.Disk,
 				IsoUUID:     node.IsoUUID,
+				ExtraDisks:  node.ExtraDisks,
 				SubnetUUID:  config.ManagementCluster.Nutanix.SubnetUUID,
 				ClusterUUID: config.ManagementCluster.Nutanix.ClusterUUID,
 			}
