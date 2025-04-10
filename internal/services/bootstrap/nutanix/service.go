@@ -21,6 +21,7 @@ import (
 	"butler/internal/adapters/platforms"
 	"butler/internal/adapters/platforms/docker"
 	"butler/internal/adapters/platforms/flux"
+	"butler/internal/adapters/platforms/helm"
 	"butler/internal/adapters/platforms/kubectl"
 	"butler/internal/adapters/platforms/talos"
 	"butler/internal/adapters/providers"
@@ -41,6 +42,7 @@ type BootstrapService struct {
 	healthCheck       *HealthChecker
 	talosInit         *TalosInitializer
 	kubeVipInit       *KubeVipInitializer
+	kubeOvnInit       *KubeOvnInitializer
 	fluxInit          *FluxInitializer
 	kubectl           *kubectl.KubectlAdapter
 	kubeConfigManager *KubeConfigManager
@@ -92,6 +94,17 @@ func NewBootstrapService(ctx context.Context, config *models.BootstrapConfig, lo
 		return nil, fmt.Errorf("failed to assert KubectlAdapter type")
 	}
 
+	helmAdapter, err := platforms.GetPlatformAdapter("helm", execAdapter, logger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize Helm adapter: %w", err)
+	}
+	helmConcrete, ok := helmAdapter.(*helm.HelmAdapter)
+	if !ok {
+		return nil, fmt.Errorf("failed to assert HelmAdapter type")
+	}
+
+	kubeOvnInit := NewKubeOvnInitializer(kubectlConcrete, helmConcrete, logger)
+
 	fluxAdapter, err := platforms.GetPlatformAdapter("flux", execAdapter, logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize Flux adapter: %w", err)
@@ -112,6 +125,7 @@ func NewBootstrapService(ctx context.Context, config *models.BootstrapConfig, lo
 		kubeVipInit:       NewKubeVipInitializer(dockerConcrete, kubectlConcrete, logger),
 		fluxInit:          NewFluxInitializer(fluxConcrete, logger),
 		kubectl:           kubectlConcrete,
+		kubeOvnInit:       kubeOvnInit,
 		kubeConfigManager: kubeConfigManager,
 		config:            config,
 	}, nil
@@ -173,21 +187,56 @@ func (b *BootstrapService) ProvisionManagementCluster() error {
 
 	// Kube-Vip
 	server := fmt.Sprintf("https://%s:6443", controlPlanes[0])
+	config.ManagementCluster.Talos.BoundNodeIP = controlPlanes[0]
 	b.logger.Info("Applying Kube-Vip RBAC configuration",
 		zap.String("server", server),
 		zap.String("manifest", "https://kube-vip.io/manifests/rbac.yaml"),
 	)
 
+	// Wait until at least one node registers
+	if err := b.kubeOvnInit.WaitForNodes(context.Background(), server, 2*time.Minute); err != nil {
+		return fmt.Errorf("failed waiting for nodes to register: %w", err)
+	}
+
+	// Gather node IP-to-name mapping prior to VIP being associated - This allows for reduction in VIP vs Bound IP Logic later when mapping.
+	ipToNodeMap, err := b.kubeOvnInit.getInternalIPToNodeNameMap(context.Background(), server)
+	if err != nil {
+		return fmt.Errorf("failed to collect node IP-to-name map: %w", err)
+	}
+
+	// KubeVip configuration
 	if err := b.kubeVipInit.ConfigureKubeVip(context.Background(), config, server); err != nil {
 		return fmt.Errorf("failed to configure Kube-Vip: %w", err)
 	}
 
-	// Sleep for stability
+	// Arbitrary Sleep - For Kube-Vip to take effect
 	time.Sleep(180 * time.Second)
 
+	// Label nodes for kube-ovn
+	if err := b.kubeOvnInit.LabelNodes(context.Background(), config, controlPlanes, workers, ipToNodeMap); err != nil {
+		return fmt.Errorf("failed to label nodes for Kube-OVN: %w", err)
+	}
+
+	// Helm Install kube-ovn with templated values
+	if err := b.kubeOvnInit.ConfigureKubeOvn(context.Background(), controlPlanes, config); err != nil {
+		return fmt.Errorf("failed to install Kube-OVN: %w", err)
+	}
+
+	// TODO: Add a check to ensure that the Kube-OVN pods are running before proceeding.
+
+	// Bootstrap Flux
 	if err := b.fluxInit.FluxBootstrap(context.Background(), config); err != nil {
 		return fmt.Errorf("failed to bootstrap Flux: %w", err)
 	}
+
+	// After Flux is bootstrapped the following should be provisioned Via Flux:
+	// MetalLB
+	// Traefik
+	// Piraeus Operator(Linstor)
+	// CAPI
+
+	// TODO: Kubevirt doesn't have a helm chart and it's suggest install is from just a normal kubectl apply.
+	// Add KubeVirt Initializer here
 
 	b.logger.Info("Flux bootstrap completed successfully")
 	b.logger.Info("Management cluster provisioned successfully")
