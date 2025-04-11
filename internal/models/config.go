@@ -79,6 +79,7 @@ type TalosConfig struct {
 	Version              string   `mapstructure:"version" yaml:"version"`
 	ControlPlaneEndpoint string   `mapstructure:"controlPlaneEndpoint" yaml:"controlPlaneEndpoint"`
 	ControlPlaneVIP      string   `mapstructure:"controlPlaneVIP" yaml:"controlPlaneVIP"`
+	BoundNodeIP          string   `mapstructure:"boundNodeIP" yaml:"boundNodeIP"`
 	ClusterName          string   `mapstructure:"clusterName" yaml:"clusterName"`
 	CIDR                 string   `mapstructure:"cidr" yaml:"cidr"`
 	Gateway              string   `mapstructure:"gateway" yaml:"gateway"`
