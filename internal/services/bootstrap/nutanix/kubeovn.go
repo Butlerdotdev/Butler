@@ -107,7 +107,6 @@ func (k *KubeOvnInitializer) ConfigureKubeOvn(ctx context.Context, controlPlaneI
 	k.logger.Info("Rendering and applying Kube-OVN values.yaml")
 
 	vip := config.ManagementCluster.Talos.ControlPlaneVIP
-	// boundIP := config.ManagementCluster.Talos.BoundNodeIP
 
 	// Detect VIP holder if not explicitly set
 	detected, err := FindVipHolder(ctx, k.talos, vip, controlPlaneIPs, k.logger)
