@@ -19,6 +19,7 @@ import (
 	"bufio"
 	"butler/internal/adapters/platforms/helm"
 	"butler/internal/adapters/platforms/kubectl"
+	"butler/internal/adapters/platforms/talos"
 	"butler/internal/models"
 	"bytes"
 	"context"
@@ -42,14 +43,16 @@ var baseKubeOvnValues string
 type KubeOvnInitializer struct {
 	kubectl *kubectl.KubectlAdapter
 	helm    *helm.HelmAdapter
+	talos   *talos.TalosAdapter
 	logger  *zap.Logger
 }
 
 // NewKubeOvnInitializer constructs a new KubeOvnInitializer instance.
-func NewKubeOvnInitializer(kubectl *kubectl.KubectlAdapter, helm *helm.HelmAdapter, logger *zap.Logger) *KubeOvnInitializer {
+func NewKubeOvnInitializer(kubectl *kubectl.KubectlAdapter, helm *helm.HelmAdapter, talos *talos.TalosAdapter, logger *zap.Logger) *KubeOvnInitializer {
 	return &KubeOvnInitializer{
 		kubectl: kubectl,
 		helm:    helm,
+		talos:   talos,
 		logger:  logger,
 	}
 }
@@ -104,7 +107,15 @@ func (k *KubeOvnInitializer) ConfigureKubeOvn(ctx context.Context, controlPlaneI
 	k.logger.Info("Rendering and applying Kube-OVN values.yaml")
 
 	vip := config.ManagementCluster.Talos.ControlPlaneVIP
-	boundIP := config.ManagementCluster.Talos.BoundNodeIP
+
+	// Detect VIP holder if not explicitly set
+	detected, err := FindVipHolder(ctx, k.talos, vip, controlPlaneIPs, k.logger)
+	if err != nil {
+		return fmt.Errorf("failed to detect VIP holder: %w", err)
+	}
+	k.logger.Info("Detected VIP holder node", zap.String("boundNodeIP", detected))
+	config.ManagementCluster.Talos.BoundNodeIP = detected
+	boundIP := detected
 
 	k.logger.Info("Starting Kube-OVN control plane IP rendering",
 		zap.String("vip", vip),
@@ -271,4 +282,27 @@ func (k *KubeOvnInitializer) WaitForNodes(ctx context.Context, server string, ti
 		}
 		time.Sleep(5 * time.Second)
 	}
+}
+
+// FindVipHolder checks which control plane node is holding the VIP.
+// This uses the /proc/net/fib_trie file to determine the node holding the VIP.
+// Most reliable way to check for VIP holder using the network stack directly.
+func FindVipHolder(ctx context.Context, talos *talos.TalosAdapter, vip string, nodes []string, logger *zap.Logger) (string, error) {
+	for _, node := range nodes {
+		logger.Info("Checking for VIP on node", zap.String("node", node))
+		out, err := talos.ExecuteCommand(ctx,
+			"read", "/proc/net/fib_trie",
+			"--nodes", node,
+			"--talosconfig", "talosconfig/talosconfig",
+		)
+		if err != nil {
+			logger.Warn("Failed to read /proc/net/fib_trie", zap.String("node", node), zap.Error(err))
+			continue
+		}
+		if strings.Contains(out, vip) {
+			logger.Info("VIP found on node", zap.String("vip", vip), zap.String("node", node))
+			return node, nil
+		}
+	}
+	return "", fmt.Errorf("VIP %s not found on any control plane nodes", vip)
 }

@@ -103,7 +103,7 @@ func NewBootstrapService(ctx context.Context, config *models.BootstrapConfig, lo
 		return nil, fmt.Errorf("failed to assert HelmAdapter type")
 	}
 
-	kubeOvnInit := NewKubeOvnInitializer(kubectlConcrete, helmConcrete, logger)
+	kubeOvnInit := NewKubeOvnInitializer(kubectlConcrete, helmConcrete, talosConcrete, logger)
 
 	fluxAdapter, err := platforms.GetPlatformAdapter("flux", execAdapter, logger)
 	if err != nil {
@@ -209,8 +209,10 @@ func (b *BootstrapService) ProvisionManagementCluster() error {
 		return fmt.Errorf("failed to configure Kube-Vip: %w", err)
 	}
 
-	// Arbitrary Sleep - For Kube-Vip to take effect
-	time.Sleep(180 * time.Second)
+	// Check if the VIP is ready
+	if err := b.kubeConfigManager.WaitForKubernetesAPI(kubeconfigPath, config.ManagementCluster.Talos.ControlPlaneVIP, 2*time.Minute); err != nil {
+		return fmt.Errorf("VIP-based Kubernetes API not ready: %w", err)
+	}
 
 	// Label nodes for kube-ovn
 	if err := b.kubeOvnInit.LabelNodes(context.Background(), config, controlPlanes, workers, ipToNodeMap); err != nil {
@@ -224,6 +226,9 @@ func (b *BootstrapService) ProvisionManagementCluster() error {
 
 	// TODO: Add a check to ensure that the Kube-OVN pods are running before proceeding.
 
+	// TODO: Piraeus Operator(Linstor) - V2 of this operator does not have a helm chart that they suggest to use. They have one for V1, but their docs show to use the V2 operator.
+	// We will install this similarly to kube ovn, Outside of the flux process. BUT, we can still use flux to manage parts of linstor.
+
 	// Bootstrap Flux
 	if err := b.fluxInit.FluxBootstrap(context.Background(), config); err != nil {
 		return fmt.Errorf("failed to bootstrap Flux: %w", err)
@@ -232,11 +237,7 @@ func (b *BootstrapService) ProvisionManagementCluster() error {
 	// After Flux is bootstrapped the following should be provisioned Via Flux:
 	// MetalLB
 	// Traefik
-	// Piraeus Operator(Linstor)
 	// CAPI
-
-	// TODO: Kubevirt doesn't have a helm chart and it's suggest install is from just a normal kubectl apply.
-	// Add KubeVirt Initializer here
 
 	b.logger.Info("Flux bootstrap completed successfully")
 	b.logger.Info("Management cluster provisioned successfully")
