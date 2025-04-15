@@ -1,4 +1,4 @@
-// Package docker defines an adapter for Docker.
+// Package talos defines an adapter for Talos and bootstrapping the OS.
 //
 // Copyright (c) 2025, The Butler Authors
 //
@@ -14,29 +14,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package docker
+package talos
 
 import (
-	"butler/internal/adapters/exec"
+	"butler/pkg/adapters/exec"
 	"context"
 	"go.uber.org/zap"
 )
 
-// DockerAdapter provides a high-level interface for Docker operations.
-type DockerAdapter struct {
-	client *DockerClient
+// TalosAdapter provides methods for executing Talos commands.
+type TalosAdapter struct {
+	client *TalosClient
 	logger *zap.Logger
 }
 
-// NewDockerAdapter initializes the adapter.
-func NewDockerAdapter(execAdapter exec.ExecAdapter, logger *zap.Logger) *DockerAdapter {
-	return &DockerAdapter{
-		client: NewDockerClient(execAdapter, logger),
+// NewTalosAdapter initializes a new Talos adapter.
+func NewTalosAdapter(execAdapter exec.ExecAdapter, logger *zap.Logger) *TalosAdapter {
+	return &TalosAdapter{
+		client: NewTalosClient(execAdapter, logger),
 		logger: logger,
 	}
 }
 
 // ExecuteKubectlCommand runs a generic kubectl command with provided arguments.
-func (d *DockerAdapter) ExecuteCommand(ctx context.Context, args ...string) (string, error) {
-	return d.client.ExecuteCommand(ctx, args...)
+func (t *TalosAdapter) ExecuteCommand(ctx context.Context, args ...string) (string, error) {
+	return t.client.ExecuteCommand(ctx, args...)
 }

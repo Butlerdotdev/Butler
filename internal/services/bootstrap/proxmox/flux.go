@@ -16,8 +16,8 @@
 package bootstrap
 
 import (
-	"butler/internal/adapters/platforms/flux"
 	"butler/internal/models"
+	"butler/pkg/adapters/platforms/flux"
 	"context"
 	"fmt"
 	"os"

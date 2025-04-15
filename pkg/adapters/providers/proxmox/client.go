@@ -17,7 +17,7 @@
 package proxmox
 
 import (
-	"butler/internal/adapters/providers/proxmox/models"
+	"butler/pkg/adapters/providers/proxmox/models"
 	"bytes"
 	"context"
 	"crypto/tls"

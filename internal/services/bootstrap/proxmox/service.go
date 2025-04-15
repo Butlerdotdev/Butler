@@ -17,15 +17,15 @@
 package bootstrap
 
 import (
-	"butler/internal/adapters/exec"
-	"butler/internal/adapters/platforms"
-	"butler/internal/adapters/platforms/docker"
-	"butler/internal/adapters/platforms/flux"
-	"butler/internal/adapters/platforms/kubectl"
-	"butler/internal/adapters/platforms/talos"
-	"butler/internal/adapters/providers"
 	"butler/internal/mappers"
 	"butler/internal/models"
+	"butler/pkg/adapters/exec"
+	"butler/pkg/adapters/platforms"
+	"butler/pkg/adapters/platforms/docker"
+	"butler/pkg/adapters/platforms/flux"
+	"butler/pkg/adapters/platforms/kubectl"
+	"butler/pkg/adapters/platforms/talos"
+	"butler/pkg/adapters/providers"
 	"context"
 	"fmt"
 	"time"

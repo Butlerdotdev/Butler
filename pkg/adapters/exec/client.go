@@ -22,7 +22,7 @@ import (
 	"os/exec"
 	"time"
 
-	"butler/internal/adapters/exec/models"
+	"butler/pkg/adapters/exec/models"
 	"go.uber.org/zap"
 )
 

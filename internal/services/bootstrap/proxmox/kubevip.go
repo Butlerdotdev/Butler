@@ -17,9 +17,9 @@
 package bootstrap
 
 import (
-	"butler/internal/adapters/platforms/docker"
-	"butler/internal/adapters/platforms/kubectl"
 	"butler/internal/models"
+	"butler/pkg/adapters/platforms/docker"
+	"butler/pkg/adapters/platforms/kubectl"
 	"context"
 	"fmt"
 	"os"

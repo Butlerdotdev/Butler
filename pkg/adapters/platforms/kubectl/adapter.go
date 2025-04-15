@@ -15,7 +15,7 @@
 package kubectl
 
 import (
-	"butler/internal/adapters/exec"
+	"butler/pkg/adapters/exec"
 	"context"
 	"go.uber.org/zap"
 )

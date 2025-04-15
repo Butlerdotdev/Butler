@@ -17,29 +17,23 @@
 package helm
 
 import (
-	"butler/internal/adapters/exec"
+	"butler/pkg/adapters/exec"
 	"context"
-	"fmt"
 
 	"go.uber.org/zap"
 )
 
-// HelmClient executes helm commands.
-type HelmClient struct {
-	execAdapter exec.ExecAdapter
-	logger      *zap.Logger
+// HelmAdapter provides a high-level interface for interacting with Helm CLI.
+type HelmAdapter struct {
+	client *HelmClient
 }
 
-// NewHelmClient initializes a new Helm client.
-func NewHelmClient(execAdapter exec.ExecAdapter, logger *zap.Logger) *HelmClient {
-	return &HelmClient{execAdapter: execAdapter, logger: logger}
+// NewHelmAdapter initializes a new HelmAdapter.
+func NewHelmAdapter(execAdapter exec.ExecAdapter, logger *zap.Logger) *HelmAdapter {
+	return &HelmAdapter{client: NewHelmClient(execAdapter, logger)}
 }
 
 // ExecuteCommand runs a generic helm command with provided arguments.
-func (c *HelmClient) ExecuteCommand(ctx context.Context, args ...string) (string, error) {
-	result, err := c.execAdapter.RunCommand(ctx, "helm", args...)
-	if err != nil {
-		return "", fmt.Errorf("helm command failed: %w", err)
-	}
-	return result.Stdout, nil
+func (a *HelmAdapter) ExecuteCommand(ctx context.Context, args ...string) (string, error) {
+	return a.client.ExecuteCommand(ctx, args...)
 }

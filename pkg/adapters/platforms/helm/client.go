@@ -1,4 +1,4 @@
-// Package kubectl defines an adapter for executing kubectl commands.
+// Package helm defines an adapter for executing helm commands.
 //
 // Copyright (c) 2025, The Butler Authors
 //
@@ -14,32 +14,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kubectl
+package helm
 
 import (
-	"butler/internal/adapters/exec"
+	"butler/pkg/adapters/exec"
 	"context"
 	"fmt"
 
 	"go.uber.org/zap"
 )
 
-// KubectlClient executes kubectl commands.
-type KubectlClient struct {
+// HelmClient executes helm commands.
+type HelmClient struct {
 	execAdapter exec.ExecAdapter
 	logger      *zap.Logger
 }
 
-// NewKubectlClient initializes a new Kubectl client.
-func NewKubectlClient(execAdapter exec.ExecAdapter, logger *zap.Logger) *KubectlClient {
-	return &KubectlClient{execAdapter: execAdapter, logger: logger}
+// NewHelmClient initializes a new Helm client.
+func NewHelmClient(execAdapter exec.ExecAdapter, logger *zap.Logger) *HelmClient {
+	return &HelmClient{execAdapter: execAdapter, logger: logger}
 }
 
-// ExecuteKubectlCommand runs a generic kubectl command with provided arguments.
-func (c *KubectlClient) ExecuteCommand(ctx context.Context, args ...string) (string, error) {
-	result, err := c.execAdapter.RunCommand(ctx, "kubectl", args...)
+// ExecuteCommand runs a generic helm command with provided arguments.
+func (c *HelmClient) ExecuteCommand(ctx context.Context, args ...string) (string, error) {
+	result, err := c.execAdapter.RunCommand(ctx, "helm", args...)
 	if err != nil {
-		return "", fmt.Errorf("kubectl command failed: %w", err)
+		return "", fmt.Errorf("helm command failed: %w", err)
 	}
 	return result.Stdout, nil
 }
