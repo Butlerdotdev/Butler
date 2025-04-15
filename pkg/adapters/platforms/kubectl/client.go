@@ -1,4 +1,4 @@
-// Package flux defines an adapter for executing flux commands.
+// Package kubectl defines an adapter for executing kubectl commands.
 //
 // Copyright (c) 2025, The Butler Authors
 //
@@ -14,32 +14,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package flux
+package kubectl
 
 import (
-	"butler/internal/adapters/exec"
+	"butler/pkg/adapters/exec"
 	"context"
 	"fmt"
 
 	"go.uber.org/zap"
 )
 
-// FluxClient executes kubectl commands.
-type FluxClient struct {
+// KubectlClient executes kubectl commands.
+type KubectlClient struct {
 	execAdapter exec.ExecAdapter
 	logger      *zap.Logger
 }
 
-// NewFluxClient initializes a new Kubectl client.
-func NewFluxClient(execAdapter exec.ExecAdapter, logger *zap.Logger) *FluxClient {
-	return &FluxClient{execAdapter: execAdapter, logger: logger}
+// NewKubectlClient initializes a new Kubectl client.
+func NewKubectlClient(execAdapter exec.ExecAdapter, logger *zap.Logger) *KubectlClient {
+	return &KubectlClient{execAdapter: execAdapter, logger: logger}
 }
 
-// ExecuteFluxCommand runs a generic kubectl command with provided arguments.
-func (c *FluxClient) ExecuteCommand(ctx context.Context, args ...string) (string, error) {
-	result, err := c.execAdapter.RunCommand(ctx, "flux", args...)
+// ExecuteKubectlCommand runs a generic kubectl command with provided arguments.
+func (c *KubectlClient) ExecuteCommand(ctx context.Context, args ...string) (string, error) {
+	result, err := c.execAdapter.RunCommand(ctx, "kubectl", args...)
 	if err != nil {
-		return "", fmt.Errorf("flux command failed: %w", err)
+		return "", fmt.Errorf("kubectl command failed: %w", err)
 	}
 	return result.Stdout, nil
 }

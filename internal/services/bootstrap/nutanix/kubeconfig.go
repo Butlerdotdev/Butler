@@ -17,7 +17,7 @@
 package bootstrap
 
 import (
-	"butler/internal/adapters/platforms"
+	"butler/pkg/adapters/platforms"
 	"context"
 	"fmt"
 	"os"

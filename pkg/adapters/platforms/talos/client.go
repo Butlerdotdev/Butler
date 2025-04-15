@@ -1,4 +1,4 @@
-// Package docker defines an adapter for Docker.
+// Package talos defines an adapter for Talos and bootstrapping the OS.
 //
 // Copyright (c) 2025, The Butler Authors
 //
@@ -14,34 +14,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package docker
+package talos
 
 import (
-	"butler/internal/adapters/exec"
+	"butler/pkg/adapters/exec"
 	"context"
 	"fmt"
 	"go.uber.org/zap"
 )
 
-// DockerClient runs Docker commands.
-type DockerClient struct {
+// TalosClient interacts with Talos using the ExecAdapter.
+type TalosClient struct {
 	execAdapter exec.ExecAdapter
 	logger      *zap.Logger
 }
 
-// NewDockerClient initializes the client.
-func NewDockerClient(execAdapter exec.ExecAdapter, logger *zap.Logger) *DockerClient {
-	return &DockerClient{
-		execAdapter: execAdapter,
-		logger:      logger,
-	}
+// NewTalosClient creates a new Talos client.
+func NewTalosClient(execAdapter exec.ExecAdapter, logger *zap.Logger) *TalosClient {
+	return &TalosClient{execAdapter: execAdapter, logger: logger}
 }
 
-// ExecuteKubectlCommand runs a generic kubectl command with provided arguments.
-func (c *DockerClient) ExecuteCommand(ctx context.Context, args ...string) (string, error) {
-	result, err := c.execAdapter.RunCommand(ctx, "docker", args...)
+// ExecuteCommand runs a Talos command with provided arguments.
+func (c *TalosClient) ExecuteCommand(ctx context.Context, args ...string) (string, error) {
+	c.logger.Info("Executing Talos command", zap.Strings("args", args))
+
+	result, err := c.execAdapter.RunCommand(ctx, "talosctl", args...)
 	if err != nil {
-		return "", fmt.Errorf("kubectl command failed: %w", err)
+		return "", fmt.Errorf("talosctl command failed: %w", err)
 	}
 	return result.Stdout, nil
 }

@@ -17,8 +17,8 @@
 package nutanix
 
 import (
-	"butler/internal/adapters/providers/nutanix/models"
 	sharedModels "butler/internal/models"
+	"butler/pkg/adapters/providers/nutanix/models"
 	"encoding/json"
 	"fmt"
 	"io"

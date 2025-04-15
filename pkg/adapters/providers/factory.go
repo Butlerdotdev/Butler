@@ -1,8 +1,8 @@
 package providers
 
 import (
-	"butler/internal/adapters/providers/nutanix"
-	"butler/internal/adapters/providers/proxmox"
+	"butler/pkg/adapters/providers/nutanix"
+	"butler/pkg/adapters/providers/proxmox"
 	"context"
 	"errors"
 

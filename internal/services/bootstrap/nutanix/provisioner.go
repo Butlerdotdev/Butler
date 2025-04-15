@@ -17,8 +17,8 @@
 package bootstrap
 
 import (
-	"butler/internal/adapters/providers"
 	"butler/internal/models"
+	"butler/pkg/adapters/providers"
 	"fmt"
 	"go.uber.org/zap"
 )

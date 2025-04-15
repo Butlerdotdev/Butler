@@ -17,7 +17,7 @@
 package tui
 
 import (
-	"butler/internal/adapters/providers/nutanix"
+	"butler/pkg/adapters/providers/nutanix"
 	"fmt"
 	"strings"
 	"time"

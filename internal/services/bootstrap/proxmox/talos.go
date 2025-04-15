@@ -17,8 +17,8 @@
 package bootstrap
 
 import (
-	"butler/internal/adapters/platforms/talos"
 	"butler/internal/models"
+	"butler/pkg/adapters/platforms/talos"
 	"context"
 	"fmt"
 	"time"

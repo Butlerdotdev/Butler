@@ -17,10 +17,10 @@ package bootstrap
 
 import (
 	"bufio"
-	"butler/internal/adapters/platforms/helm"
-	"butler/internal/adapters/platforms/kubectl"
-	"butler/internal/adapters/platforms/talos"
 	"butler/internal/models"
+	"butler/pkg/adapters/platforms/helm"
+	"butler/pkg/adapters/platforms/kubectl"
+	"butler/pkg/adapters/platforms/talos"
 	"bytes"
 	"context"
 	_ "embed"

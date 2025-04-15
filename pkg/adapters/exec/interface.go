@@ -17,7 +17,7 @@
 package exec
 
 import (
-	"butler/internal/adapters/exec/models"
+	"butler/pkg/adapters/exec/models"
 	"context"
 )
 
