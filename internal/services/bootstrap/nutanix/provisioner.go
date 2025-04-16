@@ -17,9 +17,10 @@
 package bootstrap
 
 import (
-	"butler/internal/models"
-	"butler/pkg/adapters/providers"
 	"fmt"
+
+	"github.com/butlerdotdev/butler/internal/models"
+	"github.com/butlerdotdev/butler/pkg/adapters/providers"
 	"go.uber.org/zap"
 )
 

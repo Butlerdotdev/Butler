@@ -17,10 +17,11 @@
 package bootstrap
 
 import (
-	"butler/internal/models"
-	service "butler/internal/services/bootstrap/nutanix"
 	"context"
 	"fmt"
+
+	"github.com/butlerdotdev/butler/internal/models"
+	service "github.com/butlerdotdev/butler/internal/services/bootstrap/nutanix"
 
 	"github.com/spf13/viper"
 	"go.uber.org/zap"

@@ -17,7 +17,6 @@
 package proxmox
 
 import (
-	"butler/pkg/adapters/providers/proxmox/models"
 	"bytes"
 	"context"
 	"crypto/tls"
@@ -27,6 +26,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/butlerdotdev/butler/pkg/adapters/providers/proxmox/models"
 
 	"go.uber.org/zap"
 )

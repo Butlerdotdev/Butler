@@ -17,9 +17,10 @@
 package docker
 
 import (
-	"butler/pkg/adapters/exec"
 	"context"
 	"fmt"
+
+	"github.com/butlerdotdev/butler/pkg/adapters/exec"
 	"go.uber.org/zap"
 )
 

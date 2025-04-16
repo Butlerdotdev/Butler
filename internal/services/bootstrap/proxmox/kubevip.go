@@ -17,13 +17,14 @@
 package bootstrap
 
 import (
-	"butler/internal/models"
-	"butler/pkg/adapters/platforms/docker"
-	"butler/pkg/adapters/platforms/kubectl"
 	"context"
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/butlerdotdev/butler/internal/models"
+	"github.com/butlerdotdev/butler/pkg/adapters/platforms/docker"
+	"github.com/butlerdotdev/butler/pkg/adapters/platforms/kubectl"
 
 	"go.uber.org/zap"
 )

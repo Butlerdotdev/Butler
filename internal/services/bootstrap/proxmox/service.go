@@ -17,18 +17,19 @@
 package bootstrap
 
 import (
-	"butler/internal/mappers"
-	"butler/internal/models"
-	"butler/pkg/adapters/exec"
-	"butler/pkg/adapters/platforms"
-	"butler/pkg/adapters/platforms/docker"
-	"butler/pkg/adapters/platforms/flux"
-	"butler/pkg/adapters/platforms/kubectl"
-	"butler/pkg/adapters/platforms/talos"
-	"butler/pkg/adapters/providers"
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/butlerdotdev/butler/internal/mappers"
+	"github.com/butlerdotdev/butler/internal/models"
+	"github.com/butlerdotdev/butler/pkg/adapters/exec"
+	"github.com/butlerdotdev/butler/pkg/adapters/platforms"
+	"github.com/butlerdotdev/butler/pkg/adapters/platforms/docker"
+	"github.com/butlerdotdev/butler/pkg/adapters/platforms/flux"
+	"github.com/butlerdotdev/butler/pkg/adapters/platforms/kubectl"
+	"github.com/butlerdotdev/butler/pkg/adapters/platforms/talos"
+	"github.com/butlerdotdev/butler/pkg/adapters/providers"
 
 	"go.uber.org/zap"
 )

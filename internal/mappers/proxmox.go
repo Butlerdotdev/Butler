@@ -21,9 +21,10 @@
 package mappers
 
 import (
-	"butler/internal/models"
 	"fmt"
 	"strings"
+
+	"github.com/butlerdotdev/butler/internal/models"
 )
 
 func ProxmoxToMap(cfg models.ProxmoxConfig) map[string]string {

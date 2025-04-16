@@ -21,7 +21,7 @@
 package mappers
 
 import (
-	"butler/internal/models"
+	"github.com/butlerdotdev/butler/internal/models"
 )
 
 func NutanixToMap(cfg models.NutanixConfig) map[string]string {

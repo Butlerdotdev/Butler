@@ -16,13 +16,14 @@
 package platforms
 
 import (
-	"butler/pkg/adapters/exec"
-	"butler/pkg/adapters/platforms/docker"
-	"butler/pkg/adapters/platforms/flux"
-	"butler/pkg/adapters/platforms/helm"
-	"butler/pkg/adapters/platforms/kubectl"
-	"butler/pkg/adapters/platforms/talos"
 	"fmt"
+
+	"github.com/butlerdotdev/butler/pkg/adapters/exec"
+	"github.com/butlerdotdev/butler/pkg/adapters/platforms/docker"
+	"github.com/butlerdotdev/butler/pkg/adapters/platforms/flux"
+	"github.com/butlerdotdev/butler/pkg/adapters/platforms/helm"
+	"github.com/butlerdotdev/butler/pkg/adapters/platforms/kubectl"
+	"github.com/butlerdotdev/butler/pkg/adapters/platforms/talos"
 
 	"go.uber.org/zap"
 )

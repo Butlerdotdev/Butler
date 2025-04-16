@@ -17,10 +17,11 @@
 package tui
 
 import (
-	"butler/pkg/adapters/providers/nutanix"
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/butlerdotdev/butler/pkg/adapters/providers/nutanix"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"

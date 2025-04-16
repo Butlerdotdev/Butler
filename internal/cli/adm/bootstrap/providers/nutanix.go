@@ -17,10 +17,11 @@
 package providers
 
 import (
-	bootstrap "butler/internal/handlers/bootstrap/nutanix"
-	"butler/internal/logger"
-	"butler/internal/tui"
 	"context"
+
+	bootstrap "github.com/butlerdotdev/butler/internal/handlers/bootstrap/nutanix"
+	"github.com/butlerdotdev/butler/internal/logger"
+	"github.com/butlerdotdev/butler/internal/tui"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

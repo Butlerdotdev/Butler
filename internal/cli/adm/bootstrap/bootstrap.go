@@ -17,8 +17,9 @@
 package bootstrap
 
 import (
-	"butler/internal/logger"
 	"fmt"
+
+	"github.com/butlerdotdev/butler/internal/logger"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

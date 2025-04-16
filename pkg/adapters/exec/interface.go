@@ -17,8 +17,9 @@
 package exec
 
 import (
-	"butler/pkg/adapters/exec/models"
 	"context"
+
+	"github.com/butlerdotdev/butler/pkg/adapters/exec/models"
 )
 
 // ExecAdapter defines an interface for executing system commands.

@@ -16,12 +16,13 @@
 package bootstrap
 
 import (
-	"butler/internal/models"
-	"butler/pkg/adapters/platforms/flux"
 	"context"
 	"fmt"
 	"os"
 	"time"
+
+	"github.com/butlerdotdev/butler/internal/models"
+	"github.com/butlerdotdev/butler/pkg/adapters/platforms/flux"
 
 	"go.uber.org/zap"
 )

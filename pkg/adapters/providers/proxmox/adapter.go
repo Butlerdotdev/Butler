@@ -17,8 +17,6 @@
 package proxmox
 
 import (
-	sharedModels "butler/internal/models"
-	"butler/pkg/adapters/providers/proxmox/models"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -26,6 +24,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	sharedModels "github.com/butlerdotdev/butler/internal/models"
+	"github.com/butlerdotdev/butler/pkg/adapters/providers/proxmox/models"
 
 	"go.uber.org/zap"
 )
