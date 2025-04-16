@@ -20,8 +20,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/butlerdotdev/butler/internal/models"
 	service "github.com/butlerdotdev/butler/internal/services/bootstrap/proxmox"
+	"github.com/butlerdotdev/butler/pkg/models"
 
 	"github.com/spf13/viper"
 	"go.uber.org/zap"

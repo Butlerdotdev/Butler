@@ -26,10 +26,10 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/butlerdotdev/butler/internal/models"
 	"github.com/butlerdotdev/butler/pkg/adapters/platforms/helm"
 	"github.com/butlerdotdev/butler/pkg/adapters/platforms/kubectl"
 	"github.com/butlerdotdev/butler/pkg/adapters/platforms/talos"
+	"github.com/butlerdotdev/butler/pkg/models"
 
 	"go.uber.org/zap"
 )

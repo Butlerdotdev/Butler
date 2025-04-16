@@ -21,8 +21,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/butlerdotdev/butler/internal/models"
 	"github.com/butlerdotdev/butler/pkg/adapters/platforms/flux"
+	"github.com/butlerdotdev/butler/pkg/models"
 
 	"go.uber.org/zap"
 )

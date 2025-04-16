@@ -21,8 +21,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/butlerdotdev/butler/internal/models"
 	"github.com/butlerdotdev/butler/pkg/adapters/platforms/talos"
+	"github.com/butlerdotdev/butler/pkg/models"
 
 	"go.uber.org/zap"
 )

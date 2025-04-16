@@ -19,8 +19,8 @@ package nutanix
 import (
 	"fmt"
 
-	sharedModels "github.com/butlerdotdev/butler/internal/models"
 	"github.com/butlerdotdev/butler/pkg/adapters/providers/nutanix/models"
+	sharedModels "github.com/butlerdotdev/butler/pkg/models"
 )
 
 // parseRAM converts "8GB" to MiB
