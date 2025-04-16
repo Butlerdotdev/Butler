@@ -17,10 +17,6 @@ package bootstrap
 
 import (
 	"bufio"
-	"butler/internal/models"
-	"butler/pkg/adapters/platforms/helm"
-	"butler/pkg/adapters/platforms/kubectl"
-	"butler/pkg/adapters/platforms/talos"
 	"bytes"
 	"context"
 	_ "embed"
@@ -29,6 +25,11 @@ import (
 	"strings"
 	"text/template"
 	"time"
+
+	"github.com/butlerdotdev/butler/internal/models"
+	"github.com/butlerdotdev/butler/pkg/adapters/platforms/helm"
+	"github.com/butlerdotdev/butler/pkg/adapters/platforms/kubectl"
+	"github.com/butlerdotdev/butler/pkg/adapters/platforms/talos"
 
 	"go.uber.org/zap"
 )

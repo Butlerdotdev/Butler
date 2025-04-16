@@ -17,12 +17,13 @@
 package adm
 
 import (
-	"butler/internal/cli/adm/bootstrap"
-	"butler/internal/cli/adm/bootstrap/providers"
-	"butler/internal/cli/adm/generate"
-	"butler/internal/logger"
 	"os"
 	"strings"
+
+	"github.com/butlerdotdev/butler/internal/cli/adm/bootstrap"
+	"github.com/butlerdotdev/butler/internal/cli/adm/bootstrap/providers"
+	"github.com/butlerdotdev/butler/internal/cli/adm/generate"
+	"github.com/butlerdotdev/butler/internal/logger"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

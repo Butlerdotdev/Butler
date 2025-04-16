@@ -17,19 +17,20 @@
 package bootstrap
 
 import (
-	"butler/internal/mappers"
-	"butler/internal/models"
-	"butler/pkg/adapters/exec"
-	"butler/pkg/adapters/platforms"
-	"butler/pkg/adapters/platforms/docker"
-	"butler/pkg/adapters/platforms/flux"
-	"butler/pkg/adapters/platforms/helm"
-	"butler/pkg/adapters/platforms/kubectl"
-	"butler/pkg/adapters/platforms/talos"
-	"butler/pkg/adapters/providers"
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/butlerdotdev/butler/internal/mappers"
+	"github.com/butlerdotdev/butler/internal/models"
+	"github.com/butlerdotdev/butler/pkg/adapters/exec"
+	"github.com/butlerdotdev/butler/pkg/adapters/platforms"
+	"github.com/butlerdotdev/butler/pkg/adapters/platforms/docker"
+	"github.com/butlerdotdev/butler/pkg/adapters/platforms/flux"
+	"github.com/butlerdotdev/butler/pkg/adapters/platforms/helm"
+	"github.com/butlerdotdev/butler/pkg/adapters/platforms/kubectl"
+	"github.com/butlerdotdev/butler/pkg/adapters/platforms/talos"
+	"github.com/butlerdotdev/butler/pkg/adapters/providers"
 
 	"go.uber.org/zap"
 )
@@ -230,9 +231,9 @@ func (b *BootstrapService) ProvisionManagementCluster() error {
 	// We will install this similarly to kube ovn, Outside of the flux process. BUT, we can still use flux to manage parts of linstor.
 
 	// Bootstrap Flux
-	if err := b.fluxInit.FluxBootstrap(context.Background(), config); err != nil {
-		return fmt.Errorf("failed to bootstrap Flux: %w", err)
-	}
+	// if err := b.fluxInit.FluxBootstrap(context.Background(), config); err != nil {
+	// 	return fmt.Errorf("failed to bootstrap Flux: %w", err)
+	// }
 
 	// After Flux is bootstrapped the following should be provisioned Via Flux:
 	// MetalLB

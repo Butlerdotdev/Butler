@@ -17,10 +17,11 @@
 package bootstrap
 
 import (
-	"butler/internal/models"
-	service "butler/internal/services/bootstrap/proxmox"
 	"context"
 	"fmt"
+
+	"github.com/butlerdotdev/butler/internal/models"
+	service "github.com/butlerdotdev/butler/internal/services/bootstrap/proxmox"
 
 	"github.com/spf13/viper"
 	"go.uber.org/zap"

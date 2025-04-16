@@ -1,6 +1,6 @@
 package providers
 
-import "butler/internal/models"
+import "github.com/butlerdotdev/butler/internal/models"
 
 // ProviderInterface defines required cloud provider operations.
 type ProviderInterface interface {

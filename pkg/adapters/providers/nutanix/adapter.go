@@ -17,12 +17,13 @@
 package nutanix
 
 import (
-	sharedModels "butler/internal/models"
-	"butler/pkg/adapters/providers/nutanix/models"
 	"encoding/json"
 	"fmt"
 	"io"
 	"strings"
+
+	sharedModels "github.com/butlerdotdev/butler/internal/models"
+	"github.com/butlerdotdev/butler/pkg/adapters/providers/nutanix/models"
 
 	"go.uber.org/zap"
 )

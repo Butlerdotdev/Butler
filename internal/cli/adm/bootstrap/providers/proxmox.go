@@ -17,9 +17,10 @@
 package providers
 
 import (
-	bootstrap "butler/internal/handlers/bootstrap/proxmox"
-	"butler/internal/logger"
 	"context"
+
+	bootstrap "github.com/butlerdotdev/butler/internal/handlers/bootstrap/proxmox"
+	"github.com/butlerdotdev/butler/internal/logger"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

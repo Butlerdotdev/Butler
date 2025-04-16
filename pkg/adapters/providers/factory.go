@@ -1,10 +1,11 @@
 package providers
 
 import (
-	"butler/pkg/adapters/providers/nutanix"
-	"butler/pkg/adapters/providers/proxmox"
 	"context"
 	"errors"
+
+	"github.com/butlerdotdev/butler/pkg/adapters/providers/nutanix"
+	"github.com/butlerdotdev/butler/pkg/adapters/providers/proxmox"
 
 	"go.uber.org/zap"
 )

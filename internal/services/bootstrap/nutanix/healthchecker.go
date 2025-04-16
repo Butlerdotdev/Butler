@@ -17,11 +17,12 @@
 package bootstrap
 
 import (
-	"butler/internal/models"
-	"butler/pkg/adapters/providers"
 	"fmt"
-	"go.uber.org/zap"
 	"time"
+
+	"github.com/butlerdotdev/butler/internal/models"
+	"github.com/butlerdotdev/butler/pkg/adapters/providers"
+	"go.uber.org/zap"
 )
 
 // HealthChecker waits for VMs to report healthy and have allocated IPs.

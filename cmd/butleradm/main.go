@@ -17,9 +17,9 @@
 package main
 
 import (
-	"butler/internal/cli/adm"
-	_ "butler/internal/cli/adm/generate"
-	"butler/internal/logger"
+	"github.com/butlerdotdev/butler/internal/cli/adm"
+	_ "github.com/butlerdotdev/butler/internal/cli/adm/generate"
+	"github.com/butlerdotdev/butler/internal/logger"
 )
 
 // main initializes the logger and executes the Butler CLI.

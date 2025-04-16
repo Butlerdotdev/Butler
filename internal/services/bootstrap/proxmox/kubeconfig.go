@@ -17,11 +17,12 @@
 package bootstrap
 
 import (
-	"butler/pkg/adapters/platforms"
 	"context"
 	"fmt"
 	"os"
 	"time"
+
+	"github.com/butlerdotdev/butler/pkg/adapters/platforms"
 
 	"go.uber.org/zap"
 )

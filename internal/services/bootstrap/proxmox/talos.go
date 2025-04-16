@@ -17,11 +17,12 @@
 package bootstrap
 
 import (
-	"butler/internal/models"
-	"butler/pkg/adapters/platforms/talos"
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/butlerdotdev/butler/internal/models"
+	"github.com/butlerdotdev/butler/pkg/adapters/platforms/talos"
 
 	"go.uber.org/zap"
 )

@@ -1,4 +1,4 @@
-module butler
+module github.com/butlerdotdev/butler
 
 go 1.23.0
 

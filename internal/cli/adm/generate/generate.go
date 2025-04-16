@@ -17,7 +17,7 @@
 package generate
 
 import (
-	"butler/internal/logger"
+	"github.com/butlerdotdev/butler/internal/logger"
 
 	"github.com/spf13/cobra"
 )
