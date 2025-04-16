@@ -22,9 +22,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/butlerdotdev/butler/internal/models"
 	"github.com/butlerdotdev/butler/pkg/adapters/platforms/docker"
 	"github.com/butlerdotdev/butler/pkg/adapters/platforms/kubectl"
+	"github.com/butlerdotdev/butler/pkg/models"
 
 	"go.uber.org/zap"
 )

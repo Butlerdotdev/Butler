@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/butlerdotdev/butler/internal/models"
 	"github.com/butlerdotdev/butler/pkg/adapters/providers"
+	"github.com/butlerdotdev/butler/pkg/models"
 	"go.uber.org/zap"
 )
 

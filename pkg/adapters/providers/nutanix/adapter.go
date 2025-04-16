@@ -22,8 +22,8 @@ import (
 	"io"
 	"strings"
 
-	sharedModels "github.com/butlerdotdev/butler/internal/models"
 	"github.com/butlerdotdev/butler/pkg/adapters/providers/nutanix/models"
+	sharedModels "github.com/butlerdotdev/butler/pkg/models"
 
 	"go.uber.org/zap"
 )

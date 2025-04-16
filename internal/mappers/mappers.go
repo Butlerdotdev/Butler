@@ -20,7 +20,7 @@
 
 package mappers
 
-import "github.com/butlerdotdev/butler/internal/models"
+import "github.com/butlerdotdev/butler/pkg/models"
 
 func NewMapping(provider string, config models.ManagementClusterConfig) map[string]string {
 	switch provider {

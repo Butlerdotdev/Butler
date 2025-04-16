@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"github.com/butlerdotdev/butler/internal/mappers"
-	"github.com/butlerdotdev/butler/internal/models"
 	"github.com/butlerdotdev/butler/pkg/adapters/exec"
 	"github.com/butlerdotdev/butler/pkg/adapters/platforms"
 	"github.com/butlerdotdev/butler/pkg/adapters/platforms/docker"
@@ -31,6 +30,7 @@ import (
 	"github.com/butlerdotdev/butler/pkg/adapters/platforms/kubectl"
 	"github.com/butlerdotdev/butler/pkg/adapters/platforms/talos"
 	"github.com/butlerdotdev/butler/pkg/adapters/providers"
+	"github.com/butlerdotdev/butler/pkg/models"
 
 	"go.uber.org/zap"
 )
